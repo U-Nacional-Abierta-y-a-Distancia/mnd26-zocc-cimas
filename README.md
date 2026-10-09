@@ -11,8 +11,8 @@
 | Equipo | CIMAS |
 | Zona / Centro(s) | Zona Occidente - CEAD La Dorada |
 | Tipo de producto (Tabla 1 del documento técnico) |  |
-| Integrantes (solo nombres completos) | Willinton Llanos Gómez, Diana Alejandra Sepúlveda Cortes, Juan Estiven Rodríguez Anzola, Laura Valentina Cardona Parra, Angi Jimena Guijo Rodríguez|
-| Enlace al demo web (si aplica) | https://u-nacional-abierta-y-a-distancia.github.io/mnd26-zocc-cimas/ || https://willlinton777.github.io/ima/ |
+| Integrantes (solo nombres completos) | Willinton Llanos Gómez<br />Diana Alejandra Sepúlveda Cortes<br />Juan Estiven Rodríguez Anzola<br />Laura Valentina Cardona Parra<br />Angi Jimena Guijo Rodríguez|
+| Enlace al demo web (si aplica) | https://u-nacional-abierta-y-a-distancia.github.io/mnd26-zocc-cimas/<br />https://willlinton777.github.io/ima/ |
 
 **No escriba aquí cédulas, teléfonos ni correos.** Este repositorio se hace público el viernes 9 de octubre a las 12:00 m.
 
