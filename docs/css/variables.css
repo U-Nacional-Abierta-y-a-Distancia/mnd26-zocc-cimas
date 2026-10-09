@@ -1,0 +1,57 @@
+/* ==========================================================================
+   VARIABLES Y DESIGN TOKENS - TERRITORIO VIVO
+   Olimpiadas UNAD · Eje 3: El Niño · Magdalena Caldense
+   ========================================================================== */
+
+:root {
+  /* Identidad & Naturaleza */
+  --verde-selva:      #356B3E; /* Primario: cabeceras, botones principales, naturaleza */
+  --verde-hoja:       #6F9E45; /* Secundario: estados activos, insignias, acentos */
+  --verde-claro:      #A8C96F; /* Fondos suaves, badges positivos, brotes */
+  --verde-fondo:      #EAF3DC; /* Superficie suave ecológica */
+
+  /* Agua & Territorio */
+  --azul-magdalena:   #477FA8; /* Río Magdalena, datos hídricos, mapa */
+  --azul-agua:        #8DC8C5; /* Fondos informativos, tarjetas suaves, oasis */
+  --azul-profundo:    #1F4E6B; /* Textos de alto contraste sobre azul */
+
+  /* Gamificación & Alertas */
+  --dorado-pez:       #E5A72F; /* Semillas digitales, puntos, rankings, insignias */
+  --dorado-suave:     #FFF3D6; /* Fondos de tarjetas de gamificación */
+  --naranja-tierra:   #D96B35; /* Alertas de calor, sequía, CTAs prioritarios */
+  --rojo-fuego:       #E63946; /* Incendios, conflagraciones, emergencias */
+
+  /* Orgánicos & Superficies */
+  --tierra:           #805238; /* Contornos cálidos, detalles rústicos */
+  --cafe-suave:       #A87855; /* Acentos artesanales */
+  --crema-papel:      #F5EFD8; /* Fondo principal de la app */
+  --marfil:           #FFFDF4; /* Fondo de tarjetas, modales y lectura */
+  --blanco-puro:      #FFFFFF;
+
+  /* Tipografía & Contrastes */
+  --texto-oscuro:     #1E2A20; /* Texto principal de alta legibilidad */
+  --texto-secundario: #455749; /* Texto de apoyo y subtítulos */
+  --texto-mutado:     #6D7E71; /* Metadatos, horas, etiquetas inactivas */
+
+  /* Bordes & Sombras */
+  --borde-suave:      rgba(128, 82, 56, 0.16);
+  --borde-verde:      rgba(53, 107, 62, 0.28);
+  --sombra-card:      0 6px 18px rgba(33, 46, 36, 0.08);
+  --sombra-flotante:  0 12px 32px rgba(30, 42, 32, 0.16);
+  --sombra-pin:       0 8px 24px rgba(0, 0, 0, 0.22);
+
+  /* Curvaturas & Radios */
+  --radio-sm:         8px;
+  --radio-md:         14px;
+  --radio-lg:         22px;
+  --radio-pill:       999px;
+
+  /* Tipografías */
+  --font-principal:   'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-display:     'Outfit', var(--font-principal);
+
+  /* Transiciones */
+  --trans-suave:      all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  --trans-rebote:     all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
