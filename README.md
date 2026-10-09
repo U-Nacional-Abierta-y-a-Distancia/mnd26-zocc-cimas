@@ -17,7 +17,7 @@
 **No escriba aquí cédulas, teléfonos ni correos.** Este repositorio se hace público el viernes 9 de octubre a las 12:00 m.
 
 ## ¿De qué trata? (máximo 5 líneas)
-
+IMA  se enmarca en el eje de apropiación y responsabilidad comunitaria anclada al territorio, que convierte el aprendizaje y la información en participación y en acciones concretas. Su innovación se enmarca en: Primero, incorpora estrategias atractivas para los jóvenes, como videos cortos, narrativas del territorio, retos. Segundo, integra el cuidado ambiental como un resultado real: las semillas que se acumulan al participar se transforman en árboles sembrados. Tercero, promueve la inclusión mediante un avatar que acompaña la navegación y permite interactuar con la red social por comandos de voz,
 ## Cómo ver o probar el producto
 
 - **Demo web:** si su producto se ve en el navegador (web, scrollytelling, WebGL), ponga los archivos en la carpeta `docs/`, con un `index.html` en `docs/`. Quedará en `https://u-nacional-abierta-y-a-distancia.github.io/<nombre-de-este-repositorio>/`.
