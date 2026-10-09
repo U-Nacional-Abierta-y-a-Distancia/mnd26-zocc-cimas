@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>IMA · Red Social Ambiental y Territorial (Magdalena Caldense)</title>
+  <link rel="icon" type="image/png" href="assets/img/logo_ima.png">
+
+  <!-- Tipografías Oficiales e Inclusivas (Lexend para Dislexia) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+  <!-- Hojas de Estilo Modulares -->
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/screens.css">
+  <link rel="stylesheet" href="css/map.css">
+<!--  -->
+  <!-- Librerías Externas (Animaciones y Utilidades) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+
+  <div class="desktop-wrapper">
+    <!-- BARRA SUPERIOR PARA CAMBIAR ENTRE VISTA SMARTPHONE Y PANTALLA COMPLETA -->
+    <div class="view-switch-bar">
+      <div class="view-switch-label">
+        <span>🌱 IMA · Plataforma Comunitaria frente a «El Niño» · CIMAS UNAD</span>
+      </div>
+      <button class="btn-switch-mode active" id="btnPhoneView" onclick="setPhoneMode(true)">
+        <i data-lucide="smartphone" style="width:13px; height:13px;"></i> Móvil
+      </button>
+      <button class="btn-switch-mode" id="btnFullscreenView" onclick="setPhoneMode(false)">
+        <i data-lucide="maximize" style="width:13px; height:13px;"></i> Pantalla Completa
+      </button>
+    </div>
+
+    <!-- MARCO DEL SMARTPHONE -->
+    <div class="smartphone-frame" id="phoneContainer">
+
+      <!-- BARRA DE ESTADO DEL DISPOSITIVO -->
+      <div class="mobile-status-bar">
+        <span>9:41</span>
+        <div class="dynamic-island">
+          <div class="dynamic-island-camera"></div>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <i data-lucide="wifi" style="width:13px; height:13px;"></i>
+          <i data-lucide="battery-charging" style="width:15px; height:15px;"></i>
+        </div>
+      </div>
+
+      <!-- CABECERA SUPERIOR DE LA APLICACIÓN -->
+      <header class="app-header" id="mainAppHeader">
+        <div class="app-brand-area">
+          <div class="app-logo-badge" title="IMA · Red Social Ambiental y Territorial">
+            <img src="assets/img/logo_ima.png" alt="IMA Logo" onerror="this.src='logo ima.png'">
+          </div>
+          <div class="territory-picker" onclick="AppNavigation.navigateTo('mapa')">
+            <div class="territory-picker-row">
+              <div class="radar-beacon">
+                <span class="radar-beacon-pulse"></span>
+                <span class="radar-beacon-core"></span>
+              </div>
+              <span class="territory-name" id="headerTerritoryName">La Dorada, Caldas</span>
+              <i data-lucide="chevron-down" style="width:13px; height:13px; color:var(--verde-selva);"></i>
+            </div>
+            <span class="territory-subtext">IMA · Magdalena Caldense · Eje 3</span>
+          </div>
+        </div>
+
+        <div class="header-action-btns">
+          <!-- Botón de Usuario / Login -->
+          <div class="header-user-btn" id="btnHeaderLogin" onclick="AppAuth.openLoginModal()" title="Cuenta Comunitaria / Iniciar Sesión">
+            <img class="header-user-avatar" id="headerUserAvatar" src="assets/avatars/nutria.webp" alt="Usuario" onerror="this.src='assets/avatars/nutria.png'">
+            <span class="header-user-text" id="headerUserNameBadge">Estudiante</span>
+          </div>
+
+          <button class="btn-header-round" id="btnOpenAccessibility" title="Accesibilidad y Lectura por Voz" onclick="openAccessibilityModal()">
+            <i data-lucide="accessibility" style="width:15px; height:15px;"></i>
+          </button>
+          <button class="btn-header-round" id="btnOpenNotifications" title="Alertas de emergencia" onclick="openNotificationsModal()">
+            <i data-lucide="bell" style="width:15px; height:15px;"></i>
+            <div class="notification-dot" id="headerNotifDot"></div>
+          </button>
+        </div>
+      </header>
+
+      <!-- CONTENEDOR DE PANTALLAS (SPA ROUTING VIEWPORT) -->
+      <main class="screens-viewport">
+
+        <!-- ========================================================= -->
+        <!-- ========================================================= -->
+        <!-- PANTALLA 1: ONBOARDING / ADOPCIÓN DE MASCOTA              -->
+        <!-- ========================================================= -->
+        <section class="screen-view" id="screenOnboarding">
+          <div class="onboarding-screen">
+
+            <!-- Stepper de 3 Pasos (Mockup Word) -->
+            <div class="onboarding-stepper">
+              <div class="stepper-step completed">
+                <div class="stepper-icon"><i data-lucide="check" style="width:13px; height:13px;"></i></div>
+                <span class="stepper-text">1. Regístrate</span>
+              </div>
+              <div class="stepper-line completed"></div>
+              <div class="stepper-step active">
+                <div class="stepper-icon">2</div>
+                <span class="stepper-text">2. Adopta Mascota</span>
+              </div>
+              <div class="stepper-line"></div>
+              <div class="stepper-step">
+                <div class="stepper-icon">3</div>
+                <span class="stepper-text">3. ¡Comienza!</span>
+              </div>
+            </div>
+
+            <!-- Hero de la Plataforma IMA -->
+            <div class="onboarding-hero">
+              <div class="onboarding-hero-logo" title="IMA · Inteligencia y Monitoreo Ambiental">
+                <img src="assets/img/logo_ima.png" alt="IMA Logo" onerror="this.src='logo ima.png'">
+              </div>
+              <h1>IMA</h1>
+              <div class="ima-tagline-badge">Inteligencia y Monitoreo Ambiental</div>
+              <p>Red comunitaria frente a «El Niño» en el Magdalena Caldense: apropiación de alertas tempranas, reporte oportuno y protección ciudadana.</p>
+            </div>
+
+            <!-- Selector de Territorio -->
+            <div class="territory-form-card" style="margin: 4px 0 8px 0;">
+              <label class="form-label-styled">1. Selecciona tu Municipio</label>
+              <select class="select-territory-picker" id="onboardingTerritorySelect">
+                <option value="dorada">📍 La Dorada (Foco Principal)</option>
+                <option value="norcasia">📍 Norcasia (Embalse Amaní)</option>
+                <option value="samana">📍 Samaná (Zona Andina)</option>
+                <option value="victoria">📍 Victoria (Valle del Guarinó)</option>
+              </select>
+            </div>
+
+            <!-- Adopción de Mascota de Fauna Local -->
+            <div>
+              <label class="form-label-styled">2. Adopta y Bautiza a tu Mascota Guía</label>
+              <div class="mascot-carousel-wrapper">
+                <div class="mascot-card selected" data-mascot="nutria" data-default-name="Ima" data-speech="¡Hola! Soy Ima, represento a La Madre Tierra en el Magdalena Caldense 🍃" data-emoji="🦦">
+                  <div class="mascot-avatar-circle">
+                    <video class="avatar-preview-video" src="avatar nutria.mp4" autoplay loop muted playsinline poster="assets/avatars/nutria.webp"></video>
+                    <img src="assets/avatars/nutria.webp" alt="Ima" style="display:none;" onerror="this.src='assets/avatars/nutria.png'">
+                  </div>
+                  <h4 class="mascot-name-tag">Ima</h4>
+                  <span class="mascot-role-tag">La Madre Tierra · Nutria</span>
+                </div>
+
+                <div class="mascot-card" data-mascot="pez" data-default-name="Ta" data-speech="¡Hola! Soy Ta, la fuerza del Sol y del agua viva en el Río Magdalena ☀️💧" data-emoji="🐟">
+                  <div class="mascot-avatar-circle">
+                    <video class="avatar-preview-video" src="avatar pe.mp4" autoplay loop muted playsinline poster="assets/avatars/pez.webp"></video>
+                    <img src="assets/avatars/pez.webp" alt="Ta" style="display:none;" onerror="this.src='assets/avatars/pez.png'">
+                  </div>
+                  <h4 class="mascot-name-tag">Ta</h4>
+                  <span class="mascot-role-tag">El Sol · Pez Dorado</span>
+                </div>
+
+                <div class="mascot-card" data-mascot="loro" data-default-name="Chikchi" data-speech="¡Hola! Soy Chikchi, el mensajero del Viento. Vigilaré los cielos y los bosques 💨🦜" data-emoji="🦜">
+                  <div class="mascot-avatar-circle">
+                    <video class="avatar-preview-video" src="avatar pez.mp4" autoplay loop muted playsinline poster="assets/avatars/loro.webp"></video>
+                    <img src="assets/avatars/loro.webp" alt="Chikchi" style="display:none;" onerror="this.src='assets/avatars/loro.png'">
+                  </div>
+                  <h4 class="mascot-name-tag">Chikchi</h4>
+                  <span class="mascot-role-tag">El Viento · Loro</span>
+                </div>
+              </div>
+
+              <!-- Diálogo interactivo del mockup Word (image7.png) -->
+              <div class="mascot-speech-bubble" id="onboardingMascotBubble">
+                <div class="bubble-arrow-up"></div>
+                <span class="bubble-mascot-emoji" id="bubbleMascotEmoji">🦦</span>
+                <p class="bubble-text" id="onboardingMascotSpeechText">"¡Hola! Soy Ima, represento a La Madre Tierra en el Magdalena Caldense 🍃"</p>
+              </div>
+
+              <!-- Bautizo: Nombre personalizado -->
+              <div class="mascot-naming-card">
+                <label for="mascotCustomNameInput" class="naming-label">
+                  <span>✏️ ¿Cómo me quieres llamar?</span>
+                  <span class="naming-sublabel">(Nombre ancestral o personalizado)</span>
+                </label>
+                <div class="naming-input-wrapper">
+                  <input type="text" id="mascotCustomNameInput" class="input-mascot-name" value="Ima" maxlength="20" placeholder="Escribe un nombre...">
+                  <button type="button" class="btn-naming-dice" id="btnRandomMascotName" title="Sugerir nombre cariñoso">🎲</button>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top:10px;">
+              <button class="btn-primary" id="btnFinishOnboarding" style="width:100%; padding:14px; font-size:0.95rem;">
+                Comenzar Exploración (+50 🌱)
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- PANTALLA 2: FEED DE INICIO COMUNITARIO                   -->
+        <!-- ========================================================= -->
+        <section class="screen-view active" id="screenInicio">
+          <div class="feed-screen screen-scrollable">
+
+            <!-- Caja para simular nuevo reporte comunitario -->
+            <div class="create-post-box" onclick="openReportModal()">
+              <div class="user-thumb-mini">
+                <img src="assets/avatars/nutria.webp" alt="Usuario" onerror="this.src='assets/avatars/nutria.png'">
+              </div>
+              <div class="create-post-prompt">
+                ¿Qué está pasando en tu territorio hoy?
+              </div>
+              <button class="btn-primary" style="padding:6px 12px; font-size:0.75rem; border-radius:18px;">
+                <i data-lucide="camera" style="width:14px; height:14px;"></i>
+              </button>
+            </div>
+
+            <!-- Pestañas de filtrado del Feed -->
+            <div class="feed-tabs-row">
+              <button class="feed-tab-btn active" data-tab="todo">🌟 Todo</button>
+              <button class="feed-tab-btn" data-tab="aprende">💡 Aprende</button>
+              <button class="feed-tab-btn" data-tab="alerta">🚨 Alertas</button>
+              <button class="feed-tab-btn" data-tab="accion">🌱 Acciones</button>
+              <button class="feed-tab-btn" data-tab="noticia">📢 Noticias</button>
+            </div>
+
+            <!-- Lista de Publicaciones Dinámicas -->
+            <div id="feedPostsList" style="display:flex; flex-direction:column; gap:14px;">
+              <!-- Generadas por js/feedModule.js -->
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- PANTALLA 3: NAVEGADOR DE REELS (VIDEOS CORTOS)          -->
+        <!-- ========================================================= -->
+        <section class="screen-view" id="screenReels">
+          <div class="reels-screen">
+            <div class="reels-top-bar">
+              <span class="reels-brand-tag">🌱 Voces del Magdalena</span>
+              <button class="btn-reel-upload" id="btnUploadReel" onclick="AppReels.openUploadModal()" title="Subir nuevo video o cápsula de prevención">
+                <i data-lucide="video" style="width:14px; height:14px;"></i>
+                <span>Subir Reel</span>
+              </button>
+            </div>
+            <div class="reels-video-container" id="reelsVideoContainer">
+              <!-- Renderizado por js/reelsModule.js -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- PANTALLA 4: MAPA GEOGRÁFICO INTERACTIVO (LEAFLET)        -->
+        <!-- ========================================================= -->
+        <section class="screen-view" id="screenMapa">
+          <div class="map-screen">
+            <div id="map"></div>
+
+            <!-- HUD FLOTANTE SUPERIOR UNIFICADO -->
+            <div class="map-floating-hud">
+              <!-- Fila 1: Buscador + Botón Centrar + Botón Capas -->
+              <div class="hud-row-search">
+                <div class="search-field-wrapper">
+                  <i data-lucide="search" class="search-field-icon"></i>
+                  <input type="text" id="searchInput" class="search-input-clean" placeholder="Buscar vereda, río o alerta...">
+                </div>
+
+                <button class="hud-circle-btn" id="btnCenterMap" title="Recentrar en La Dorada" onclick="AppMap.centerOnTown()">
+                  <i data-lucide="crosshair" style="width:18px; height:18px;"></i>
+                </button>
+
+                <div class="basemap-dropdown-wrapper">
+                  <button class="hud-circle-btn" id="btnBasemapToggle" title="Cambiar mapa base" onclick="AppMap.toggleBasemapDropdown()">
+                    <i data-lucide="layers" style="width:18px; height:18px;"></i>
+                  </button>
+                  <div class="basemap-popup-menu" id="basemapMenu">
+                    <button class="basemap-item-btn active" id="btnBaseTopo" onclick="AppMap.switchBaseMap('topo')">
+                      <span>⛰️</span> <span>Topográfico</span>
+                    </button>
+                    <button class="basemap-item-btn" id="btnBaseStreet" onclick="AppMap.switchBaseMap('street')">
+                      <span>🗺️</span> <span>Calles y Vías</span>
+                    </button>
+                    <button class="basemap-item-btn" id="btnBaseSatellite" onclick="AppMap.switchBaseMap('satellite')">
+                      <span>🛰️</span> <span>Satélite</span>
+                    </button>
+                    <button class="basemap-item-btn" id="btnBaseIllustrated" onclick="AppMap.switchBaseMap('illustrated')">
+                      <span>🎨</span> <span>Ilustrado OSM</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Fila 2: Segmented Switch (Riesgo vs Impacto) + Scroll de Chips -->
+              <div class="hud-row-controls map-view-alertas" id="hudRowControls">
+                <div class="segmented-layer-capsule">
+                  <button class="seg-pill-btn active" id="tabAlertas" onclick="AppMap.switchLayerMode('alertas')">
+                    <span class="seg-dot red"></span> Riesgo
+                  </button>
+                  <button class="seg-pill-btn" id="tabImpacto" onclick="AppMap.switchLayerMode('impacto')">
+                    <span class="seg-dot green"></span> Impacto
+                  </button>
+                </div>
+
+                <div class="chips-horizontal-scroll" id="filterChipsRow">
+                  <!-- CAPA RIESGO -->
+                  <div class="filter-chip-bubble active" data-layer="alertas" data-cat="incendio" onclick="AppMap.toggleFilter('incendio')">
+                    <span>🔥 Incendios</span>
+                  </div>
+                  <div class="filter-chip-bubble active" data-layer="alertas" data-cat="calor" onclick="AppMap.toggleFilter('calor')">
+                    <span>☀️ Calor</span>
+                  </div>
+                  <div class="filter-chip-bubble active" data-layer="alertas" data-cat="agua" onclick="AppMap.toggleFilter('agua')">
+                    <span>💧 Río</span>
+                  </div>
+                  <div class="filter-chip-bubble active" data-layer="alertas" data-cat="residuos" onclick="AppMap.toggleFilter('residuos')">
+                    <span>🚯 Residuos</span>
+                  </div>
+
+                  <!-- CAPA IMPACTO (BUENAS ACCIONES) -->
+                  <div class="filter-chip-bubble active" data-layer="impacto" data-cat="siembra" onclick="AppMap.toggleFilter('siembra')">
+                    <span>🌳 Árboles Sembrados</span>
+                  </div>
+                  <div class="filter-chip-bubble active" data-layer="impacto" data-cat="hidratacion" onclick="AppMap.toggleFilter('hidratacion')">
+                    <span>🚰 Oasis de Agua</span>
+                  </div>
+                  <div class="filter-chip-bubble active" data-layer="impacto" data-cat="limpieza" onclick="AppMap.toggleFilter('limpieza')">
+                    <span>🧹 Rondas Limpias</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- BOTÓN FLOTANTE REPORTAR (+ FAB) -->
+            <button class="fab-report-pill" id="btnOpenReport">
+              <i data-lucide="plus" style="width:18px; height:18px;"></i>
+              <span>Reportar</span>
+            </button>
+
+            <!-- HOJA INFERIOR DEL MAPA (BOTTOM SHEET) -->
+            <div class="native-bottom-sheet" id="bottomSheet">
+              <div class="sheet-handle-bar"></div>
+              <div class="sheet-header-mobile">
+                <span class="sheet-badge-cat urgente" id="sheetBadge">🔴 Alerta Crítica</span>
+                <button style="border:none; background:transparent; cursor:pointer;" onclick="AppMap.closeBottomSheet()">
+                  <i data-lucide="x" style="width:18px; height:18px; color:var(--texto-mutado);"></i>
+                </button>
+              </div>
+              <div class="sheet-body-mobile">
+                <h3 class="sheet-title-text" id="sheetTitle">Conflagración en Vereda Concordia</h3>
+
+                <div class="sheet-location-box">
+                  <div class="geo-radar-mini">
+                    <span class="geo-pulse"></span>
+                    <span class="geo-dot"></span>
+                  </div>
+                  <span id="sheetLocationText">Vereda Concordia · La Dorada</span>
+                </div>
+
+                <p class="sheet-card-desc" id="sheetDesc">
+                  Columna de humo divisada cerca a potrero seco. Se requiere verificación inmediata para evitar propagación a viviendas.
+                </p>
+
+                <div class="sheet-grid-metrics">
+                  <div class="grid-metric-box">
+                    <span>Confirmaciones</span>
+                    <strong id="sheetConfirms">9</strong>
+                  </div>
+                  <div class="grid-metric-box">
+                    <span>Tiempo</span>
+                    <strong id="sheetTime">Hace 14m</strong>
+                  </div>
+                  <div class="grid-metric-box">
+                    <span>Estado</span>
+                    <strong id="sheetStatus" style="color:var(--naranja-tierra);">En Validación</strong>
+                  </div>
+                </div>
+
+                <div class="sheet-action-buttons">
+                  <button class="btn-action-primary" id="btnConfirmCommunity" onclick="AppMap.confirmCommunity()">
+                    <i data-lucide="check-circle" style="width:16px; height:16px;"></i>
+                    <span>Lo veo también (+1 confirmación)</span>
+                  </button>
+
+                  <button class="btn-action-follow-zone" id="btnFollowZone" onclick="AppMap.toggleFollowZone()">
+                    <i data-lucide="bookmark-plus" style="width:16px; height:16px;" id="iconFollowZone"></i>
+                    <span id="followZoneText">Seguir Zona (+Avisos Vecinales)</span>
+                  </button>
+
+                  <a href="tel:119" class="btn-action-emergency" id="btnCallBomberos">
+                    <i data-lucide="phone-call" style="width:16px; height:16px;"></i>
+                    <span>Llamar Bomberos La Dorada (119)</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- PANTALLA 5: RETOS Y MISIONES COMUNITARIAS                -->
+        <!-- ========================================================= -->
+        <section class="screen-view" id="screenRetos">
+          <div class="retos-screen screen-scrollable">
+
+            <div class="seeds-counter-banner">
+              <div class="seeds-info">
+                <h2 id="totalSeedsDisplay">340</h2>
+                <p>Semillas colectivas acumuladas</p>
+              </div>
+              <div class="tree-conversion-badge">
+                <span>Equivale a</span>
+                <strong id="totalTreesDisplay">4</strong>
+                <span style="font-size:0.6rem; color:#fff;">Árboles reales</span>
+              </div>
+            </div>
+
+            <!-- RETO ESPECIAL / MINIJUEGO: LIMPIA EL RÍO ECO-MATCH -->
+            <div class="challenge-card" id="btnOpenCandyGame" style="border: 2px solid var(--verde-hoja); cursor:pointer;" onclick="AppCandyGame.openGame()">
+              <div class="challenge-card-header">
+                <div class="challenge-title-group">
+                  <div class="challenge-icon-box" style="background:var(--verde-fondo); color:var(--verde-selva);">
+                    <span>🎮</span>
+                  </div>
+                  <div style="min-width:0; flex:1;">
+                    <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                      <h3 style="font-size:0.88rem; font-weight:800; color:var(--texto-oscuro); margin:0;">Limpia el Río: Eco-Match</h3>
+                      <span class="badge-live-tag" style="font-size:0.58rem; background:var(--verde-fondo);">Misión Lúdica</span>
+                    </div>
+                    <span style="font-size:0.7rem; color:var(--texto-mutado); font-weight:700;">Desafío Comunitario Frente a El Niño</span>
+                  </div>
+                </div>
+                <span class="reward-tag-pill">+35 🌱</span>
+              </div>
+
+              <p style="font-size:0.78rem; color:var(--texto-oscuro); line-height:1.45;">
+                Une 3 o más elementos del río (agua limpia, semillas, bocachicos) para retirar residuos acumulados y ganar semillas directas.
+              </p>
+
+              <div style="display:flex; justify-content:space-between; align-items:center; background:var(--verde-fondo); padding:8px 12px; border-radius:var(--radio-md); border:1px solid rgba(111,158,69,0.35);">
+                <div style="display:flex; align-items:center; gap:6px; font-size:16px;">
+                  <span>💧</span><span>🌱</span><span>🐟</span><span>🌳</span><span>☀️</span><span>♻️</span>
+                </div>
+                <button class="btn-primary" style="padding:6px 14px; font-size:0.74rem;" type="button">
+                  <i data-lucide="play" style="width:12px; height:12px;"></i> Jugar Ahora
+                </button>
+              </div>
+            </div>
+
+            <div style="background:var(--marfil); border-radius:var(--radio-md); padding:10px 14px; border:1px solid var(--borde-suave); font-size:0.75rem; color:var(--texto-secundario); display:flex; align-items:center; gap:8px;">
+              <span style="font-size:18px;">🌱</span>
+              <span><strong>Métrica de Retorno:</strong> Cada 100 semillas acumuladas por la comunidad se convierten en 1 árbol nativo sembrado en La Dorada.</span>
+            </div>
+
+            <h3 style="font-size:0.95rem; font-weight:800; color:var(--verde-selva); margin-top:4px;">
+              Misiones Activas frente a «El Niño»
+            </h3>
+
+            <!-- Lista de Retos Dinámicos -->
+            <div id="challengesListContainer" style="display:flex; flex-direction:column; gap:12px;">
+              <!-- Generados por js/challengesModule.js -->
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- PANTALLA 6: MI PERFIL Y RETORNO AL TERRITORIO           -->
+        <!-- ========================================================= -->
+        <section class="screen-view" id="screenPerfil">
+          <div class="perfil-screen screen-scrollable">
+
+            <!-- Ficha del Usuario Conectado -->
+            <div class="user-profile-header-card">
+              <div class="profile-avatar-giant">
+                <img id="profileAvatarImg" src="assets/avatars/nutria.webp" alt="Avatar" onerror="this.src='assets/avatars/nutria.png'">
+              </div>
+              <div class="profile-names-block">
+                <h2>Estudiante UNAD</h2>
+                <span id="profileUserHandleDisplay" style="font-size:0.75rem; color:var(--texto-mutado); font-weight:700;">@estudiante_unad</span>
+                <div style="font-size:0.72rem; color:var(--verde-selva); font-weight:700; margin: 2px 0;" id="profileUserRoleDisplay">
+                  Guardián Territorial
+                </div>
+                <div class="guardian-badge-pill">
+                  <i data-lucide="shield-check" style="width:13px; height:13px;"></i>
+                  <span>Cuenta Verificada</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Botón de Gestión de Sesión / Cambiar Cuenta -->
+            <div style="display:flex; gap:8px;">
+              <button class="btn-secondary" id="btnProfileAuthAction" style="flex:1; padding:8px 12px; font-size:0.75rem; display:flex; align-items:center; justify-content:center; gap:6px;" onclick="AppAuth.openLoginModal()">
+                <i data-lucide="users" style="width:14px; height:14px;"></i> Cambiar Cuenta / Iniciar Sesión
+              </button>
+            </div>
+
+            <!-- Grilla de Métricas de Impacto -->
+            <div class="impact-grid-container">
+              <div class="impact-metric-card">
+                <span>Semillas Colectivas</span>
+                <strong id="profileSeedsCount">340</strong>
+              </div>
+              <div class="impact-metric-card">
+                <span>Árboles Sembrados</span>
+                <strong id="profileTreesCount">4</strong>
+              </div>
+              <div class="impact-metric-card">
+                <span>Municipio Activo</span>
+                <strong style="font-size:0.95rem;" id="profileTerritoryName">La Dorada</strong>
+              </div>
+              <div class="impact-metric-card">
+                <span>Alertas Validadas</span>
+                <strong style="color:var(--naranja-tierra);">12</strong>
+              </div>
+            </div>
+
+            <!-- Galería de Árboles Sembrados en La Dorada -->
+            <div style="background:var(--marfil); border-radius:var(--radio-lg); padding:14px; border:1.5px solid var(--borde-suave);">
+              <h4 style="font-size:0.86rem; font-weight:800; color:var(--verde-selva); margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+                <i data-lucide="trees" style="width:16px; height:16px;"></i>
+                Bosque Comunitario · Riberas Bucamba
+              </h4>
+              <p style="font-size:0.75rem; color:var(--texto-secundario); line-height:1.4;">
+                Las semillas que acumulas al ver reels, jugar al Eco-Match y validar alertas financian la siembra de especies nativas (Ceiba, Guayacán y Caracolí) para proteger la cuenca del Río Magdalena.
+              </p>
+              <div style="display:flex; gap:8px; margin-top:10px;">
+                <button class="btn-secondary" style="flex:1; padding:8px; font-size:0.72rem;" onclick="AppNavigation.navigateTo('mapa')">
+                  Ver Árboles en Mapa
+                </button>
+                <button class="btn-primary" style="flex:1; padding:8px; font-size:0.72rem;" onclick="AppVoice.speakMessage('Tu compromiso ha hecho posible la siembra de árboles en el sector de Bucamba.')">
+                  Escuchar Reporte
+                </button>
+              </div>
+            </div>
+
+            <!-- SECCIÓN: CAMPAÑAS DE DONACIÓN Y RETORNO AMBIENTAL (DOCUMENTO WORD SECCIÓN 5) -->
+            <div class="profile-donations-section">
+              <div class="donations-header-block">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="font-size:1.3rem;">🌱</span>
+                  <div>
+                    <h4 style="font-size:0.88rem; font-weight:800; color:var(--verde-selva); margin:0;">
+                      Donaciones Comunitarias
+                    </h4>
+                    <span style="font-size:0.68rem; color:var(--texto-mutado); font-weight:600;">
+                      Invierte tus semillas en metas reales de conservación
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div id="profileCampaignsList" class="profile-campaigns-list">
+                <!-- Renderizado dinámicamente por js/app.js -->
+              </div>
+            </div>
+
+            <!-- Botón de reinicio de onboarding -->
+            <button class="btn-secondary" style="width:100%; padding:11px;" onclick="AppNavigation.navigateTo('onboarding')">
+              Cambiar Mascota o Municipio
+            </button>
+
+          </div>
+        </section>
+
+      </main>
+
+      <!-- REGLA GUÍA DE LECTURA VISUAL (ACCESIBILIDAD) -->
+      <div id="accessibilityReadingRuler" class="reading-ruler-overlay" style="display:none;"></div>
+
+      <!-- ASISTENTE FLOTANTE DE FAUNA (ACCESIBILIDAD Y VOZ) -->
+      <div class="companion-floating-widget" id="companionWidget">
+        <div class="companion-avatar-wrapper" id="companionBubble" title="Toca para despertar a tu guía y escuchar consejos de voz">
+          <div class="companion-bubble-avatar">
+            <video id="companionVideo" src="nutriaasistente.mp4" playsinline muted preload="auto" poster="assets/avatars/nutria.webp"></video>
+            <img id="companionImg" src="assets/avatars/nutria.webp" alt="Avatar" style="display:none;" onerror="this.src='assets/avatars/nutria.png'">
+          </div>
+          <div class="companion-zzz-badge" id="companionZzz" title="Durmiendo">💤</div>
+        </div>
+        <div class="companion-speech-dialog" id="companionBubbleText" style="display:none;">
+          <span id="speechText" title="Toca para escuchar con voz">"¡Cuidemos el Río Magdalena y las veredas hoy!"</span>
+          <i data-lucide="volume-2" style="width:14px; height:14px; color:var(--verde-selva); flex-shrink:0;"></i>
+          <button class="btn-close-bubble" id="btnCloseCompanionBubble" title="Cerrar mensaje" onclick="AppVoice.hideBubble(event)">
+            <i data-lucide="x" style="width:12px; height:12px;"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- BARRA DE NAVEGACIÓN INFERIOR (BOTTOM TAB DOCK NATIVO) -->
+      <nav class="bottom-tab-dock" id="bottomTabDock">
+        <button class="tab-nav-btn active" data-screen="inicio">
+          <i data-lucide="home"></i>
+          <span>Inicio</span>
+          <div class="tab-active-indicator"></div>
+        </button>
+
+        <button class="tab-nav-btn" data-screen="reels">
+          <i data-lucide="film"></i>
+          <span>Reels</span>
+          <div class="tab-active-indicator" style="display:none;"></div>
+        </button>
+
+        <button class="tab-nav-btn" data-screen="mapa">
+          <i data-lucide="map"></i>
+          <span>Mapa</span>
+          <div class="tab-active-indicator" style="display:none;"></div>
+        </button>
+
+        <button class="tab-nav-btn" data-screen="retos">
+          <i data-lucide="award"></i>
+          <span>Retos</span>
+          <div class="tab-active-indicator" style="display:none;"></div>
+        </button>
+
+        <button class="tab-nav-btn" data-screen="perfil">
+          <i data-lucide="user"></i>
+          <span>Perfil</span>
+          <div class="tab-active-indicator" style="display:none;"></div>
+        </button>
+      </nav>
+
+      <!-- ========================================================= -->
+      <!-- MODALES GLOBALES NATIVOS (ENCAPSULADOS EN EL CELULAR)     -->
+      <!-- ========================================================= -->
+
+      <!-- 1. MODAL: REPORTE TERRITORIAL (RIESGO VS BUENAS ACCIONES / IMPACTO) -->
+      <div class="modal-overlay-backdrop" id="reportModalOverlay">
+        <div class="modal-bottom-drawer">
+          <div class="modal-header-row">
+            <h4 class="modal-header-title" id="reportModalTitle">
+              <i data-lucide="alert-triangle" id="reportModalTitleIcon" style="width:18px; height:18px; color:var(--naranja-tierra);"></i>
+              <span id="reportModalTitleText">Reporte Territorial · La Dorada</span>
+            </h4>
+            <button class="btn-modal-close" onclick="closeReportModal()">
+              <i data-lucide="x" style="width:18px; height:18px;"></i>
+            </button>
+          </div>
+
+          <!-- Selector de Modo: Riesgo vs Buena Acción (Impacto) -->
+          <div class="report-mode-segmented-bar">
+            <button type="button" class="report-mode-btn active risk" id="btnReportModeRisk" onclick="setReportMode('alertas')">
+              <span>🔴</span> Alerta de Riesgo
+            </button>
+            <button type="button" class="report-mode-btn" id="btnReportModeImpact" onclick="setReportMode('impacto')">
+              <span>🌱</span> Buena Acción (Impacto)
+            </button>
+          </div>
+
+          <!-- Selector Dinámico de Categoría -->
+          <div class="form-field-group">
+            <label id="labelReportCategory">Tipo de Riesgo Territorial</label>
+            <select id="modalAlertType" class="form-input-styled" onchange="handleReportCategoryChange()">
+              <option value="incendio">🔥 Incendio / Quema de pastizal</option>
+              <option value="calor">☀️ Ola de Calor Extremo (Estrés Térmico)</option>
+              <option value="agua">💧 Bajante del Río / Escasez de agua</option>
+              <option value="residuos">🚯 Disposición Inadecuada de Residuos (Ronda o Pastizal)</option>
+            </select>
+          </div>
+
+          <!-- Bloque Específico para Árboles Sembrados (Aparece al seleccionar Siembra) -->
+          <div class="tree-planted-details-box" id="treePlantingBox" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <label style="margin:0; font-size:0.73rem; font-weight:800; color:var(--verde-selva);">
+                🌳 Árboles Nativos Sembrados:
+              </label>
+              <div class="tree-stepper-box">
+                <button type="button" class="tree-stepper-btn" onclick="stepTreeCount(-1)">−</button>
+                <span class="tree-stepper-count" id="treeCountDisplay">1</span>
+                <button type="button" class="tree-stepper-btn" onclick="stepTreeCount(1)">+</button>
+              </div>
+            </div>
+            <div class="form-field-group" style="margin-bottom:0;">
+              <label style="font-size:0.68rem; color:var(--texto-mutado); margin-bottom:3px;">Especie Nativa Plantada</label>
+              <select id="modalTreeSpecies" class="form-input-styled" style="font-size:0.74rem;">
+                <option value="Caracolí (Anacardium excelsum)">🌳 Caracolí (Especie Protectora Ribera Magdalena)</option>
+                <option value="Guayacán Amarillo (Handroanthus)">🌼 Guayacán Amarillo (Mitigación Térmica Urbana)</option>
+                <option value="Ceiba Bruja (Ceiba pentandra)">🌿 Ceiba Bruja (Refugio de Aves y Fauna)</option>
+                <option value="Samán (Samanea saman)">🍃 Samán (Gran Sombra frente a 41°C)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Bloque de Personas Afectadas / Poblaciones Vulnerables -->
+          <div class="vulnerable-people-box" id="vulnerablePeopleBox">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <label style="margin:0; font-size:0.73rem; font-weight:800; color:var(--texto-oscuro); display:flex; align-items:center; gap:5px;">
+                <span>👥</span> Personas Afectadas / Vulnerables:
+              </label>
+              <div class="tree-stepper-box">
+                <button type="button" class="tree-stepper-btn" onclick="stepVulnerableCount(-1)">−</button>
+                <span class="tree-stepper-count" id="vulnerableCountDisplay">0</span>
+                <button type="button" class="tree-stepper-btn" onclick="stepVulnerableCount(1)">+</button>
+              </div>
+            </div>
+
+            <!-- Chips de grupos vulnerables identificados -->
+            <div style="font-size:0.68rem; color:var(--texto-mutado); font-weight:700; margin-bottom:4px;">
+              Grupos en condición prioritaria:
+            </div>
+            <div class="vulnerable-chips-row" id="vulnerableChipsRow">
+              <button type="button" class="vulnerable-chip-btn" data-group="Niños" onclick="toggleVulnerableGroup(this)">
+                <span>👶</span> Niños / Menores
+              </button>
+              <button type="button" class="vulnerable-chip-btn" data-group="Adultos mayores" onclick="toggleVulnerableGroup(this)">
+                <span>👵</span> Adultos Mayores
+              </button>
+              <button type="button" class="vulnerable-chip-btn" data-group="Movilidad reducida" onclick="toggleVulnerableGroup(this)">
+                <span>♿</span> Movilidad Reducida
+              </button>
+              <button type="button" class="vulnerable-chip-btn" data-group="Urgencia médica" onclick="toggleVulnerableGroup(this)">
+                <span>🏥</span> Urgencia Médica
+              </button>
+            </div>
+          </div>
+
+          <div class="form-field-group">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+              <label style="margin:0;">Ubicación / Sector en La Dorada</label>
+              <button type="button" class="btn-gps-precise" id="btnGetGPS" onclick="getPreciseGPSLocation()" title="Capturar coordenadas GPS precisas">
+                <i data-lucide="crosshair" style="width:12px; height:12px;"></i>
+                <span id="gpsBtnLabel">Mi GPS Preciso</span>
+              </button>
+            </div>
+            <input type="text" id="modalAlertPlace" class="form-input-styled" placeholder="Ej: Vereda Concordia, Malecón Bucamba, Barrio Alfonso López">
+            <div id="gpsStatusBadge" class="gps-coords-badge" style="display:none;">
+              <span class="gps-dot-pulse"></span>
+              <span id="gpsStatusText">GPS: 5.4542° N, -74.6648° W (±6m)</span>
+            </div>
+          </div>
+
+          <div class="form-field-group">
+            <label id="labelReportDesc">Descripción Comunitaria</label>
+            <textarea id="modalAlertDesc" class="form-input-styled" rows="3" placeholder="¿Qué observas en el territorio?"></textarea>
+          </div>
+
+          <div style="display:flex; gap:10px; margin-top:6px;">
+            <button class="btn-secondary" style="flex:1;" onclick="closeReportModal()">Cancelar</button>
+            <button class="btn-primary" id="btnSubmitReportModal" style="flex:2; background:var(--naranja-tierra);" onclick="submitNewReportFromModal()">
+              <i data-lucide="send" style="width:15px; height:15px;"></i>
+              <span id="btnSubmitReportText">Publicar Alerta (+20 🌱)</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1.1 MODAL: SUBIR REEL / VIDEO COMUNITARIO -->
+      <div class="modal-overlay-backdrop" id="uploadReelModalOverlay">
+        <div class="modal-bottom-drawer">
+          <div class="modal-header-row">
+            <h4 class="modal-header-title">
+              <i data-lucide="video" style="width:18px; height:18px; color:var(--verde-selva);"></i>
+              <span>Publicar Reel · Voces del Magdalena</span>
+            </h4>
+            <button class="btn-modal-close" onclick="AppReels.closeUploadModal()">
+              <i data-lucide="x" style="width:18px; height:18px;"></i>
+            </button>
+          </div>
+
+          <!-- Zona de Carga de Video -->
+          <div class="upload-reel-dropzone" onclick="document.getElementById('reelVideoFileInput').click()">
+            <input type="file" id="reelVideoFileInput" accept="video/mp4,video/webm,video/quicktime,video/*" style="display:none;" onchange="AppReels.handleFileSelected(event)">
+            <div id="uploadReelPrompt" style="display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center; padding:16px 10px;">
+              <div style="width:44px; height:44px; border-radius:50%; background:var(--verde-fondo); display:flex; align-items:center; justify-content:center; color:var(--verde-selva); border:1.5px solid var(--verde-hoja);">
+                <i data-lucide="upload-cloud" style="width:22px; height:22px;"></i>
+              </div>
+              <strong style="font-size:0.82rem; color:var(--texto-oscuro);">Toca para subir video (MP4, WebM)</strong>
+              <span style="font-size:0.68rem; color:var(--texto-mutado);">Graba o selecciona un video vertical desde tu dispositivo</span>
+            </div>
+            <video id="uploadReelPreview" style="display:none; width:100%; max-height:170px; border-radius:12px; object-fit:cover; background:#000;" playsinline controls></video>
+          </div>
+
+          <!-- Campos de Información -->
+          <div class="form-field-group">
+            <label>Título o Pregunta del Reel</label>
+            <input type="text" id="uploadReelTitle" class="form-input-styled" placeholder="Ej: ¿Cómo proteger a los niños del calor en Bucamba?">
+          </div>
+
+          <div class="form-field-group">
+            <label>Mensaje o Descripción</label>
+            <textarea id="uploadReelDesc" class="form-input-styled" rows="2" placeholder="Comparte una recomendación comunitaria o alerta frente a El Niño..."></textarea>
+          </div>
+
+          <div class="form-field-group">
+            <label>Etiquetas Rápidas</label>
+            <div class="vulnerable-chips-row" id="reelTagsSelector">
+              <button type="button" class="vulnerable-chip-btn active" data-tag="#OlaDeCalor" onclick="AppReels.toggleReelTag(this)">#OlaDeCalor</button>
+              <button type="button" class="vulnerable-chip-btn active" data-tag="#RíoMagdalena" onclick="AppReels.toggleReelTag(this)">#RíoMagdalena</button>
+              <button type="button" class="vulnerable-chip-btn" data-tag="#PoblaciónVulnerable" onclick="AppReels.toggleReelTag(this)">#PoblaciónVulnerable</button>
+              <button type="button" class="vulnerable-chip-btn" data-tag="#Prevención" onclick="AppReels.toggleReelTag(this)">#Prevención</button>
+              <button type="button" class="vulnerable-chip-btn" data-tag="#CimasUNAD" onclick="AppReels.toggleReelTag(this)">#CimasUNAD</button>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:10px; margin-top:4px;">
+            <button class="btn-secondary" style="flex:1;" onclick="AppReels.closeUploadModal()">Cancelar</button>
+            <button class="btn-primary" id="btnPublishReelSubmit" style="flex:2;" onclick="AppReels.submitUploadedReel()">
+              <i data-lucide="send" style="width:15px; height:15px;"></i> Publicar Reel (+25 🌱)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. MODAL: CENTRO DE NOTIFICACIONES -->
+      <div class="modal-overlay-backdrop" id="notificationsModalOverlay">
+        <div class="modal-bottom-drawer">
+          <div class="modal-header-row">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <h4 class="modal-header-title">
+                <i data-lucide="bell" style="width:18px; height:18px; color:var(--verde-selva);"></i>
+                Notificaciones y Alertas
+              </h4>
+            </div>
+            <button class="btn-modal-close" onclick="closeNotificationsModal()">
+              <i data-lucide="x" style="width:18px; height:18px;"></i>
+            </button>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
+            <span style="font-size:0.72rem; color:var(--texto-mutado); font-weight:600;">Monitoreo Magdalena Caldense</span>
+            <button style="border:none; background:transparent; font-size:0.7rem; color:var(--verde-selva); font-weight:800; cursor:pointer;" onclick="markAllNotificationsRead()">
+              Marcar como leídas
+            </button>
+          </div>
+
+          <div id="notificationsListContainer" style="display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; padding-right:2px;">
+            <!-- Renderizado dinámico desde APP_DATA.notificacionesAlertas -->
+          </div>
+
+          <div style="display:flex; gap:8px; margin-top:4px;">
+            <button class="btn-primary" style="width:100%;" onclick="closeNotificationsModal(); AppNavigation.navigateTo('mapa');">
+              <i data-lucide="map-pin" style="width:15px; height:15px;"></i> Ver Mapa de Riesgos
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. MODAL: ACCESIBILIDAD Y LECTOR INCLUSIVO (APIs GRATUITAS Y LEXEND) -->
+      <div class="modal-overlay-backdrop" id="accessibilityModalOverlay">
+        <div class="modal-bottom-drawer">
+          <div class="modal-header-row">
+            <h4 class="modal-header-title">
+              <i data-lucide="accessibility" style="width:18px; height:18px; color:var(--verde-selva);"></i>
+              Accesibilidad e Inclusión Ciudadana
+            </h4>
+            <button class="btn-modal-close" onclick="closeAccessibilityModal()">
+              <i data-lucide="x" style="width:18px; height:18px;"></i>
+            </button>
+          </div>
+
+          <p style="font-size:0.73rem; color:var(--texto-secundario); line-height:1.35;">
+            Adaptaciones inclusivas para comunidades ribereñas, adultos mayores, baja visión y neurodivergencia.
+          </p>
+
+          <!-- Control 1: Web Speech API Screen Reader -->
+          <div class="access-control-card">
+            <div class="access-control-label">
+              <h4>🔊 Lector de Pantalla en Voz Alta</h4>
+              <p>Escucha el resumen de la pantalla actual vía Web Speech API</p>
+            </div>
+            <button class="btn-primary" style="padding:7px 12px; font-size:0.72rem; flex-shrink:0;" onclick="AppVoice.readScreenAloud()">
+              Narrar
+            </button>
+          </div>
+
+          <!-- Control 2: Fuente Lexend para Dislexia (API Google Fonts) -->
+          <div class="access-control-card">
+            <div class="access-control-label">
+              <h4>📖 Tipografía para Dislexia</h4>
+              <p>Fuente Lexend para máxima legibilidad y confort visual</p>
+            </div>
+            <button class="btn-secondary" id="btnToggleDyslexia" style="padding:7px 12px; font-size:0.72rem; flex-shrink:0;" onclick="toggleDyslexiaFont()">
+              Activar
+            </button>
+          </div>
+
+          <!-- Control 3: Regla Guía de Lectura -->
+          <div class="access-control-card">
+            <div class="access-control-label">
+              <h4>📏 Regla Guía de Lectura</h4>
+              <p>Franja interactiva que sigue el dedo para no perder el renglón</p>
+            </div>
+            <button class="btn-secondary" id="btnToggleRuler" style="padding:7px 12px; font-size:0.72rem; flex-shrink:0;" onclick="toggleReadingRuler()">
+              Activar
+            </button>
+          </div>
+
+          <!-- Control 4: Tamaño de texto -->
+          <div class="access-control-card">
+            <div class="access-control-label">
+              <h4>🔠 Tamaño de Tipografía</h4>
+              <p>Ajusta el tamaño del texto para mejor legibilidad</p>
+            </div>
+            <div class="access-pill-group">
+              <button class="access-pill-btn active" id="btnFontNormal" onclick="document.querySelectorAll('.access-pill-group button').forEach(b=>b.classList.remove('active')); this.classList.add('active'); AppVoice.setFontSize('normal');">100%</button>
+              <button class="access-pill-btn" id="btnFontLarge" onclick="document.querySelectorAll('.access-pill-group button').forEach(b=>b.classList.remove('active')); this.classList.add('active'); AppVoice.setFontSize('large');">A+</button>
+              <button class="access-pill-btn" id="btnFontExtra" onclick="document.querySelectorAll('.access-pill-group button').forEach(b=>b.classList.remove('active')); this.classList.add('active'); AppVoice.setFontSize('extra');">A++</button>
+            </div>
+          </div>
+
+          <!-- Control 5: Filtros Visuales (Alto Contraste / Grises) -->
+          <div class="access-control-card">
+            <div class="access-control-label">
+              <h4>👁️ Filtros Visuales (WCAG)</h4>
+              <p>Modo bajo el sol y visualización monocromática</p>
+            </div>
+            <div style="display:flex; gap:6px; flex-shrink:0;">
+              <button class="btn-secondary" style="padding:6px 9px; font-size:0.68rem;" onclick="AppVoice.toggleHighContrast()" title="Alto contraste">
+                Contraste
+              </button>
+              <button class="btn-secondary" id="btnToggleGrayscale" style="padding:6px 9px; font-size:0.68rem;" onclick="toggleGrayscale()" title="Escala de grises">
+                Grises
+              </button>
+            </div>
+          </div>
+
+          <!-- Control 6: Resaltar Botones y Enlaces -->
+          <div class="access-control-card">
+            <div class="access-control-label">
+              <h4>🔗 Resaltar Botones y Enlaces</h4>
+              <p>Bordes llamativos para fácil localización y toque</p>
+            </div>
+            <button class="btn-secondary" id="btnToggleHighlightLinks" style="padding:7px 12px; font-size:0.72rem; flex-shrink:0;" onclick="toggleHighlightLinks()">
+              Resaltar
+            </button>
+          </div>
+
+          <!-- Control 7: Mascota guía -->
+          <div class="access-control-card">
+            <div class="access-control-label">
+              <h4>🐾 Mascota Guía Territorial</h4>
+              <p>Escuchar las recomendaciones de tu acompañante de fauna</p>
+            </div>
+            <button class="btn-primary" style="padding:7px 12px; font-size:0.72rem; flex-shrink:0;" onclick="AppVoice.speakCurrentMessage()">
+              Escuchar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. MODAL: DIÁLOGO COMUNITARIO -->
+      <div class="modal-overlay-backdrop" id="commentsModalOverlay">
+        <div class="modal-bottom-drawer">
+          <div class="modal-header-row">
+            <div>
+              <h4 class="modal-header-title">
+                <i data-lucide="messages-square" style="width:18px; height:18px; color:var(--verde-selva);"></i>
+                Diálogo Comunitario
+              </h4>
+              <span id="commentsModalSubtitle" style="font-size:0.68rem; color:var(--texto-mutado); font-weight:600;">Magdalena Caldense · Respuestas ciudadanas</span>
+            </div>
+            <button class="btn-modal-close" onclick="closeCommentsModal()">
+              <i data-lucide="x" style="width:18px; height:18px;"></i>
+            </button>
+          </div>
+
+          <div class="comments-list-box" id="commentsListContainer">
+            <!-- Comentarios renderizados dinámicamente -->
+          </div>
+
+          <div class="comment-input-bar">
+            <input type="text" id="inputNewCommentText" placeholder="Escribe tu mensaje o reporte vecinal..." onkeydown="if(event.key==='Enter') submitNewComment()">
+            <button class="btn-primary" style="padding:6px 12px; border-radius:16px; font-size:0.72rem;" onclick="submitNewComment()">
+              <i data-lucide="send" style="width:13px; height:13px;"></i> Enviar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. MODAL: COMPARTIR EN REDES Y COMUNIDAD -->
+      <div class="modal-overlay-backdrop" id="shareModalOverlay">
+        <div class="modal-bottom-drawer">
+          <div class="modal-header-row">
+            <h4 class="modal-header-title">
+              <i data-lucide="share-2" style="width:18px; height:18px; color:var(--verde-selva);"></i>
+              Difundir Alerta Territorial
+            </h4>
+            <button class="btn-modal-close" onclick="closeShareModal()">
+              <i data-lucide="x" style="width:18px; height:18px;"></i>
+            </button>
+          </div>
+
+          <div class="share-preview-card" id="sharePreviewSnippet">
+            "Alerta comunitaria por El Niño en el Magdalena Caldense."
+          </div>
+
+          <div class="share-grid-actions">
+            <button class="share-action-btn" onclick="shareViaWhatsApp()">
+              <span style="font-size:18px;">💬</span> WhatsApp
+            </button>
+            <button class="share-action-btn" onclick="copyShareLink()">
+              <i data-lucide="copy" style="width:16px; height:16px;"></i> Copiar Link
+            </button>
+            <button class="share-action-btn" onclick="notifyLocalJAC()">
+              <span style="font-size:18px;">🏛️</span> Red JAC
+            </button>
+            <a href="tel:119" class="share-action-btn" style="text-decoration:none; color:var(--rojo-fuego);">
+              <i data-lucide="phone-call" style="width:16px; height:16px;"></i> Bomberos 119
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. MODAL: DETALLE Y VERIFICACIÓN DE RETO -->
+      <div class="modal-overlay-backdrop" id="challengeDetailModalOverlay">
+        <div class="modal-bottom-drawer">
+          <div class="modal-header-row">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:20px;" id="modalChallengeIcon">💧</span>
+              <div>
+                <h4 class="modal-header-title" id="modalChallengeTitle">Misión Territorial</h4>
+                <div style="display:flex; gap:6px; align-items:center; margin-top:2px;">
+                  <span class="badge-live-tag" id="modalChallengeCategory">Seguridad Hídrica</span>
+                  <span class="reward-tag-pill" id="modalChallengeReward" style="font-size:0.65rem;">+30 🌱</span>
+                </div>
+              </div>
+            </div>
+            <button class="btn-modal-close" onclick="AppChallenges.closeChallengeModal()">
+              <i data-lucide="x" style="width:18px; height:18px;"></i>
+            </button>
+          </div>
+
+          <p style="font-size:0.76rem; color:var(--texto-oscuro); line-height:1.45;" id="modalChallengeDesc">
+            Descripción detallada del reto frente a El Niño.
+          </p>
+
+          <div>
+            <label style="font-size:0.7rem; font-weight:800; color:var(--texto-mutado); text-transform:uppercase; letter-spacing:0.03em; display:block; margin-bottom:6px;">
+              Pasos Prácticos en tu Hogar / Barrio:
+            </label>
+            <div id="modalChallengeSteps" style="display:flex; flex-direction:column; gap:6px;">
+              <!-- Pasos dinámicos -->
+            </div>
+          </div>
+
+          <!-- Bloque de verificación para evitar trampas con las semillas -->
+          <div id="modalChallengeQuizBox">
+            <!-- Pregunta interactiva -->
+          </div>
+
+          <div id="modalChallengeFeedback" style="display:none; padding:10px 12px; border-radius:12px; font-size:0.74rem; line-height:1.4;">
+          </div>
+
+          <div style="display:flex; gap:8px; margin-top:4px;">
+            <button class="btn-secondary" style="flex:1;" onclick="AppChallenges.closeChallengeModal()">Cerrar</button>
+            <button class="btn-primary" id="btnVerifyChallengeAction" style="flex:2;" onclick="AppChallenges.submitVerification()">
+              Validar Cumplimiento & Reclamar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. MODAL: PERFIL DE AUTORES Y CUENTAS TERRITORIALES -->
+      <div class="modal-overlay-backdrop" id="authorProfileModalOverlay">
+        <div class="author-profile-drawer">
+          <!-- Portada con degradado temático y botón cerrar -->
+          <div class="author-cover-banner" id="authorModalBanner">
+            <button class="author-banner-close-btn" onclick="AppProfiles.closeAuthorProfile()" title="Cerrar perfil">
+              <i data-lucide="x" style="width:16px; height:16px;"></i>
+            </button>
+          </div>
+
+          <div class="author-header-content">
+            <div class="author-avatar-row">
+              <div class="author-avatar-circle">
+                <img id="authorModalAvatar" src="assets/avatars/nutria.webp" alt="Avatar" onerror="this.src='assets/avatars/nutria.png'">
+              </div>
+              <div style="display:flex; gap:8px;">
+                <button class="btn-author-follow" id="btnAuthorModalFollow" onclick="AppProfiles.toggleFollowCurrent()">
+                  <i data-lucide="user-plus" style="width:14px; height:14px;"></i> Seguir
+                </button>
+                <button class="btn-header-round" style="width:34px; height:34px;" onclick="AppProfiles.shareCurrentProfile()" title="Compartir Perfil">
+                  <i data-lucide="share-2" style="width:15px; height:15px;"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="author-info-block">
+              <h3>
+                <span id="authorModalName">Ima · La Madre Tierra</span>
+                <span class="guardian-badge-pill" id="authorModalVerified" style="padding:2px 8px; font-size:0.64rem;">
+                  <i data-lucide="check-circle" style="width:12px; height:12px; color:var(--verde-hoja);"></i> Verificado
+                </span>
+              </h3>
+              <div style="display:flex; gap:8px; align-items:center; margin-top:2px;">
+                <span class="author-handle-tag" id="authorModalHandle">@ima_madretierra</span>
+                <span style="font-size:0.68rem; color:var(--texto-mutado);">•</span>
+                <span style="font-size:0.7rem; color:var(--texto-mutado); display:flex; align-items:center; gap:3px;">
+                  <i data-lucide="map-pin" style="width:11px; height:11px; color:var(--verde-selva);"></i>
+                  <span id="authorModalLocation">La Dorada, Caldas</span>
+                </span>
+              </div>
+              <p class="author-role-sub" id="authorModalRole">La Madre Tierra · Nutria de Río</p>
+              <p class="author-bio-text" id="authorModalBio">
+                Protegiendo la fauna del Río Magdalena frente al fenómeno de El Niño.
+              </p>
+            </div>
+
+            <!-- Métricas del Autor -->
+            <div class="author-stats-grid">
+              <div class="author-stat-item">
+                <span>Seguidores</span>
+                <strong id="authorModalFollowers">1,420</strong>
+              </div>
+              <div class="author-stat-item">
+                <span>Semillas 🌱</span>
+                <strong id="authorModalSeeds">850</strong>
+              </div>
+              <div class="author-stat-item">
+                <span>Árboles 🌳</span>
+                <strong id="authorModalTrees">24</strong>
+              </div>
+              <div class="author-stat-item">
+                <span>Alertas 📢</span>
+                <strong id="authorModalAlerts">18</strong>
+              </div>
+            </div>
+
+            <!-- Pestañas de Contenido del Autor -->
+            <div class="author-tabs-bar">
+              <button class="author-tab-btn active" data-tab="posts" onclick="AppProfiles.setAuthorTab('posts')">
+                Publicaciones
+              </button>
+              <button class="author-tab-btn" data-tab="reels" onclick="AppProfiles.setAuthorTab('reels')">
+                Reels & Acciones
+              </button>
+            </div>
+          </div>
+
+          <!-- Lista Dinámica de Contenido del Autor -->
+          <div class="author-content-area" id="authorModalContentList">
+            <!-- Rellenado por js/profileModule.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 8. MODAL: LOGIN Y SELECCIÓN DE CUENTAS COMUNITARIAS -->
+      <div class="modal-overlay-backdrop" id="loginModalOverlay">
+        <div class="auth-modal-drawer">
+          <div class="modal-header-row">
+            <h4 class="modal-header-title">
+              <i data-lucide="shield-check" style="width:18px; height:18px; color:var(--verde-selva);"></i>
+              Acceso Comunitario · IMA
+            </h4>
+            <button class="btn-modal-close" onclick="AppAuth.closeLoginModal()">
+              <i data-lucide="x" style="width:18px; height:18px;"></i>
+            </button>
+          </div>
+
+          <p style="font-size:0.75rem; color:var(--texto-secundario); line-height:1.4;">
+            Inicia sesión para sincronizar tus semillas ecológicas, adoptar tu mascota guardiana y registrar alertas de El Niño en La Dorada.
+          </p>
+
+          <!-- Barra de Pestañas: Iniciar Sesión vs Registro -->
+          <div class="auth-tabs-row">
+            <button type="button" class="auth-tab-btn active" id="tabAuthLogin" onclick="AppAuth.setAuthTab('login')">
+              Iniciar Sesión
+            </button>
+            <button type="button" class="auth-tab-btn" id="tabAuthRegister" onclick="AppAuth.setAuthTab('register')">
+              Crear Cuenta
+            </button>
+          </div>
+
+          <!-- FORMULARIO DE INICIO DE SESIÓN -->
+          <div id="authLoginFormContainer">
+            <!-- Cuentas Rápidas de Demostración (1-Click) -->
+            <label style="font-size:0.7rem; font-weight:800; color:var(--texto-mutado); text-transform:uppercase; letter-spacing:0.03em; display:block; margin-bottom:8px;">
+              ⚡ Acceso Rápido con Cuentas Demo:
+            </label>
+            <div id="demoAccountsContainer" style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">
+              <!-- Rellenado por js/authModule.js -->
+            </div>
+
+            <div style="position:relative; text-align:center; margin:12px 0 16px 0;">
+              <hr style="border:none; border-top:1px solid var(--borde-suave);">
+              <span style="position:absolute; top:-9px; left:50%; transform:translateX(-50%); background:var(--marfil); padding:0 8px; font-size:0.68rem; color:var(--texto-mutado); font-weight:700;">o ingresa tus credenciales</span>
+            </div>
+
+            <form onsubmit="AppAuth.submitLoginForm(event)" style="display:flex; flex-direction:column; gap:10px;">
+              <div>
+                <label style="font-size:0.7rem; font-weight:700; color:var(--texto-oscuro); display:block; margin-bottom:4px;">Correo Institucional o Usuario</label>
+                <input type="text" id="loginEmailInput" class="select-territory-picker" placeholder="estudiante@unad.edu.co" style="font-size:0.8rem; padding:9px 12px;">
+              </div>
+              <div>
+                <label style="font-size:0.7rem; font-weight:700; color:var(--texto-oscuro); display:block; margin-bottom:4px;">Contraseña</label>
+                <input type="password" id="loginPasswordInput" class="select-territory-picker" placeholder="••••••••" style="font-size:0.8rem; padding:9px 12px;">
+              </div>
+              <button type="submit" class="btn-primary" style="width:100%; padding:10px; margin-top:4px;">
+                Entrar como Guardián
+              </button>
+            </form>
+          </div>
+
+          <!-- FORMULARIO DE REGISTRO NUEVO -->
+          <div id="authRegisterFormContainer" style="display:none;">
+            <form onsubmit="AppAuth.submitRegisterForm(event)" style="display:flex; flex-direction:column; gap:10px;">
+              <div>
+                <label style="font-size:0.7rem; font-weight:700; color:var(--texto-oscuro); display:block; margin-bottom:4px;">Nombre Completo</label>
+                <input type="text" id="registerNameInput" class="select-territory-picker" placeholder="Ej: Diana Milena Ramírez" style="font-size:0.8rem; padding:9px 12px;">
+              </div>
+              <div>
+                <label style="font-size:0.7rem; font-weight:700; color:var(--texto-oscuro); display:block; margin-bottom:4px;">Correo Electrónico</label>
+                <input type="email" id="registerEmailInput" class="select-territory-picker" placeholder="diana@unad.edu.co" style="font-size:0.8rem; padding:9px 12px;">
+              </div>
+              <div>
+                <label style="font-size:0.7rem; font-weight:700; color:var(--texto-oscuro); display:block; margin-bottom:4px;">Rol en el Territorio</label>
+                <select id="registerRoleSelect" class="select-territory-picker" style="font-size:0.8rem; padding:9px 12px;">
+                  <option value="Estudiante UNAD">Estudiante UNAD</option>
+                  <option value="Líder Comunitario">Líder Comunitario / JAC</option>
+                  <option value="Pescador Artesanal">Pescador Artesanal del Magdalena</option>
+                  <option value="Ciudadano Guardián">Ciudadano Guardián</option>
+                </select>
+              </div>
+              <button type="submit" class="btn-primary" style="width:100%; padding:10px; margin-top:6px;">
+                Registrarme (+100 Semillas Bono 🌱)
+              </button>
+            </form>
+          </div>
+
+          <!-- Opción de invitado -->
+          <button class="btn-secondary" style="width:100%; padding:8px; font-size:0.74rem;" onclick="AppAuth.continueAsGuest()">
+            Continuar como Visitante Invitado
+          </button>
+        </div>
+      </div>
+
+      <!-- 9. MODAL: MINIJUEGO TIPO CANDY CRUSH (ECO-MATCH DEL MAGDALENA) -->
+      <div class="modal-overlay-backdrop" id="candyGameModalOverlay">
+        <div class="candy-game-drawer">
+          <div class="modal-header-row">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:22px;">🎮</span>
+              <div>
+                <h4 class="modal-header-title">Limpia el Río · Eco-Match</h4>
+                <span style="font-size:0.65rem; color:var(--verde-selva); font-weight:700;">¡Une 3 iguales y gana +35 semillas 🌱!</span>
+              </div>
+            </div>
+            <button class="btn-modal-close" onclick="AppCandyGame.closeGame()">
+              <i data-lucide="x" style="width:18px; height:18px;"></i>
+            </button>
+          </div>
+
+          <!-- Barra HUD del Juego -->
+          <div class="candy-game-hud">
+            <div class="candy-hud-metric">
+              <span>Puntaje</span>
+              <strong id="gameScoreVal">0</strong>
+            </div>
+            <div class="candy-hud-metric">
+              <span>Movimientos</span>
+              <strong id="gameMovesVal" style="color:var(--naranja-tierra);">16</strong>
+            </div>
+            <div class="candy-hud-metric">
+              <span>Meta: <b id="gameTargetVal">350</b> pts</span>
+              <div class="candy-progress-track">
+                <div class="candy-progress-fill" id="gameTargetProgressBar"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Aviso Toast del Juego -->
+          <div class="candy-toast-notice" id="candyGameToastNotice">
+            Toca una ficha y luego una vecina para intercambiar
+          </div>
+
+          <!-- Tablero del Juego 6x6 -->
+          <div class="candy-board-grid" id="candyGameBoard">
+            <!-- Celdas generadas por js/candyGameModule.js -->
+          </div>
+
+          <!-- Banner de Victoria -->
+          <div class="candy-endgame-banner victory" id="candyGameVictoryBanner" style="display:none;">
+            <span style="font-size:28px;">🎉</span>
+            <h4 style="color:var(--verde-selva); font-size:1rem; font-weight:800; margin:0;">¡Misión Hídrica Lograda!</h4>
+            <p style="font-size:0.75rem; color:var(--texto-oscuro); margin:0;">
+              Has desbloqueado el flujo del Río Magdalena y ganado <strong>+35 Semillas Colectivas 🌱</strong> directas para tu cuenta.
+            </p>
+            <div style="display:flex; gap:8px; width:100%; margin-top:4px;">
+              <button class="btn-primary" style="flex:1; padding:8px;" onclick="AppCandyGame.resetGame()">
+                Jugar Otra Ronda
+              </button>
+              <button class="btn-secondary" style="flex:1; padding:8px;" onclick="AppCandyGame.closeGame()">
+                Ver en Mi Perfil
+              </button>
+            </div>
+          </div>
+
+          <!-- Banner de Derrota -->
+          <div class="candy-endgame-banner defeat" id="candyGameDefeatBanner" style="display:none;">
+            <span style="font-size:28px;">⏳</span>
+            <h4 style="color:var(--naranja-tierra); font-size:1rem; font-weight:800; margin:0;">¡Se agotaron los movimientos!</h4>
+            <p style="font-size:0.75rem; color:var(--texto-oscuro); margin:0;">
+              Estuviste cerca. Intenta de nuevo combinando cuartetas o cascadas para alcanzar los 350 puntos.
+            </p>
+            <button class="btn-primary" style="width:100%; padding:8px; margin-top:4px;" onclick="AppCandyGame.resetGame()">
+              Reintentar Reto
+            </button>
+          </div>
+
+          <!-- Instrucciones breves -->
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.68rem; color:var(--texto-mutado);">
+            <span>💧 Agua · 🌱 Semilla · 🐟 Pez · 🌳 Caracolí · ☀️ Sol · ♻️ Reciclaje</span>
+            <button style="background:transparent; border:none; color:var(--verde-selva); font-weight:800; cursor:pointer;" onclick="AppCandyGame.resetGame()">
+              Reiniciar 🔄
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- LEAFLET JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!-- SCRIPTS MODULARES DE LA APLICACIÓN -->
+  <script src="js/data.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/navigation.js"></script>
+  <script src="js/feedModule.js"></script>
+  <script src="js/reelsModule.js"></script>
+  <script src="js/mapModule.js"></script>
+  <script src="js/challengesModule.js"></script>
+  <script src="js/voiceModule.js"></script>
+  <script src="js/profileModule.js"></script>
+  <script src="js/authModule.js"></script>
+  <script src="js/candyGameModule.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
+

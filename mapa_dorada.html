@@ -1,0 +1,1905 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>IMA · App Móvil La Dorada (Caldas) - Eje 3 El Niño</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+  <!-- Lucide Icons & GSAP -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+  <style>
+    :root {
+      /* Design Tokens del proyecto */
+      --verde-selva:      #356B3E;
+      --verde-hoja:       #6F9E45;
+      --verde-claro:      #A8C96F;
+      --verde-fondo:      #EAF3DC;
+      --azul-magdalena:   #477FA8;
+      --azul-agua:        #8DC8C5;
+      --dorado-pez:       #E5A72F;
+      --naranja-tierra:   #D96B35;
+      --rojo-fuego:       #E63946;
+      --tierra:           #805238;
+      --cafe-suave:       #A87855;
+      --crema-papel:      #F5EFD8;
+      --marfil:           #FFFDF4;
+      --texto-oscuro:     #1E2A20;
+      --texto-mutado:     #607064;
+      --borde-suave:      rgba(128, 82, 56, 0.16);
+      --borde-activo:     rgba(53, 107, 62, 0.35);
+      --sombra-flotante:  0 8px 24px rgba(33, 46, 36, 0.14);
+      --sombra-pin:       0 8px 22px rgba(0, 0, 0, 0.22);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #172d1c 0%, #294830 50%, #172c1c 100%);
+      color: var(--texto-oscuro);
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* CONTENEDOR AMBIENTAL Y CONTROLES DE VISTA EXTERNOS */
+    .outer-wrapper {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    .view-toggle-bar {
+      position: absolute;
+      top: 14px;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 253, 244, 0.94);
+      backdrop-filter: blur(10px);
+      padding: 5px 14px;
+      border-radius: 30px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.28);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+    }
+
+    .view-toggle-bar span {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--verde-selva);
+    }
+
+    .btn-view-mode {
+      border: none;
+      background: var(--verde-fondo);
+      color: var(--verde-selva);
+      font-weight: 800;
+      font-size: 0.72rem;
+      padding: 5px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s;
+    }
+
+    .btn-view-mode.active {
+      background: var(--verde-selva);
+      color: #fff;
+    }
+
+    /* MARCO DEL DISPOSITIVO MÓVIL (SMARTPHONE FRAME) */
+    .phone-container {
+      position: relative;
+      width: 412px;
+      height: 870px;
+      max-height: calc(100vh - 45px);
+      max-width: 100vw;
+      background: var(--crema-papel);
+      border-radius: 46px;
+      box-shadow: 0 25px 65px rgba(0, 0, 0, 0.45), 0 0 0 10px #151e16, 0 0 0 12px #324435;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .phone-container.fullscreen-mode {
+      width: 100vw;
+      height: 100vh;
+      max-height: 100vh;
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    /* BARRA DE ESTADO MÓVIL */
+    .mobile-status-bar {
+      height: 38px;
+      background: var(--marfil);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: var(--texto-oscuro);
+      z-index: 1000;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    }
+
+    .dynamic-island {
+      width: 105px;
+      height: 22px;
+      background: #0d140e;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .dynamic-island-cam {
+      width: 9px;
+      height: 9px;
+      background: #1c2b1e;
+      border-radius: 50%;
+    }
+
+    /* CABECERA DE LA APP */
+    .app-header {
+      background: var(--marfil);
+      padding: 10px 16px 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1.5px solid var(--borde-suave);
+      z-index: 999;
+      box-shadow: 0 2px 10px rgba(53, 107, 62, 0.05);
+    }
+
+    .app-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .app-logo-box {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background: rgba(111, 158, 69, 0.15);
+      border: 1.5px solid var(--verde-hoja);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .app-logo-box img {
+      width: 82%;
+      height: 82%;
+      object-fit: contain;
+    }
+
+    /* BALIZA TERRITORIAL ANIMADA (REEMPLAZO DEL PIN PLANO) */
+    .location-selector {
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+    }
+
+    .location-badge-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .live-radar-beacon {
+      position: relative;
+      width: 15px;
+      height: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .radar-core {
+      width: 8px;
+      height: 8px;
+      background: var(--verde-selva);
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(53, 107, 62, 0.7);
+    }
+
+    .radar-ping {
+      position: absolute;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: rgba(111, 158, 69, 0.55);
+      animation: radarPulseAnim 2s infinite ease-out;
+    }
+
+    @keyframes radarPulseAnim {
+      0% { transform: scale(0.6); opacity: 1; }
+      100% { transform: scale(2.4); opacity: 0; }
+    }
+
+    .town-name {
+      font-size: 0.93rem;
+      font-weight: 800;
+      color: var(--verde-selva);
+      letter-spacing: -0.01em;
+    }
+
+    .live-chip-badge {
+      font-size: 0.58rem;
+      font-weight: 800;
+      background: rgba(53, 107, 62, 0.12);
+      color: var(--verde-selva);
+      border: 1px solid var(--verde-hoja);
+      padding: 1px 6px;
+      border-radius: 8px;
+      letter-spacing: 0.04em;
+    }
+
+    .location-subtext {
+      font-size: 0.67rem;
+      font-weight: 600;
+      color: var(--texto-mutado);
+      margin-top: 1px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-icon-header {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--crema-papel);
+      border: 1px solid var(--borde-suave);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--verde-selva);
+      cursor: pointer;
+      position: relative;
+    }
+
+    .badge-bell {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 8px;
+      height: 8px;
+      background: var(--rojo-fuego);
+      border-radius: 50%;
+      box-shadow: 0 0 0 2px #fff;
+    }
+
+    /* CONTENEDOR DEL MAPA */
+    .map-viewport {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* ========================================================= */
+    /* HUD FLOTANTE SUPERIOR UNIFICADO (ORIENTACIÓN Y EQUILIBRIO) */
+    /* ========================================================= */
+    .map-floating-hud {
+      position: absolute;
+      top: 10px;
+      left: 12px;
+      right: 12px;
+      z-index: 500;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .hud-row-search {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      pointer-events: auto;
+    }
+
+    .search-field-wrapper {
+      position: relative;
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-field-icon {
+      position: absolute;
+      left: 12px;
+      color: var(--verde-selva);
+      width: 16px;
+      height: 16px;
+      pointer-events: none;
+    }
+
+    .search-input-clean {
+      width: 100%;
+      height: 40px;
+      padding: 0 14px 0 38px;
+      background: rgba(255, 253, 244, 0.95);
+      backdrop-filter: blur(12px);
+      border: 1.5px solid var(--borde-suave);
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-family: inherit;
+      color: var(--texto-oscuro);
+      outline: none;
+      box-shadow: var(--sombra-flotante);
+      transition: all 0.2s;
+    }
+
+    .search-input-clean:focus {
+      border-color: var(--verde-selva);
+      background: #fff;
+      box-shadow: 0 4px 16px rgba(53, 107, 62, 0.2);
+    }
+
+    .hud-circle-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--marfil);
+      border: 1.5px solid var(--borde-suave);
+      color: var(--verde-selva);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: var(--sombra-flotante);
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .hud-circle-btn:active {
+      transform: scale(0.92);
+    }
+
+    /* MENÚ DESPLEGABLE DE MAPA BASE */
+    .basemap-dropdown-wrapper {
+      position: relative;
+    }
+
+    .basemap-popup-menu {
+      position: absolute;
+      top: 46px;
+      right: 0;
+      background: var(--marfil);
+      border: 1.5px solid var(--borde-suave);
+      border-radius: 16px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 120px;
+      opacity: 0;
+      transform: translateY(-8px) scale(0.95);
+      pointer-events: none;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 600;
+    }
+
+    .basemap-popup-menu.open {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .basemap-item-btn {
+      padding: 7px 12px;
+      border-radius: 10px;
+      border: none;
+      background: transparent;
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--texto-oscuro);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .basemap-item-btn.active {
+      background: var(--verde-fondo);
+      color: var(--verde-selva);
+      font-weight: 800;
+    }
+
+    /* FILA 2 DEL HUD: SEGMENTED CONTROL + SCROLL DE CHIPS */
+    .hud-row-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      pointer-events: auto;
+      overflow: hidden;
+    }
+
+    .segmented-layer-capsule {
+      display: flex;
+      background: rgba(255, 253, 244, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 3px;
+      border-radius: 20px;
+      border: 1.5px solid var(--borde-suave);
+      box-shadow: var(--sombra-flotante);
+      flex-shrink: 0;
+    }
+
+    .seg-pill-btn {
+      padding: 5px 11px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      border: none;
+      background: transparent;
+      color: var(--texto-mutado);
+      border-radius: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s;
+    }
+
+    .seg-pill-btn.active {
+      background: var(--verde-selva);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(53, 107, 62, 0.3);
+    }
+
+    .seg-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .seg-dot.red { background: var(--rojo-fuego); }
+    .seg-dot.green { background: #A8C96F; }
+
+    .chips-horizontal-scroll {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      padding: 2px 0;
+    }
+
+    .chips-horizontal-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-chip-bubble {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 12px;
+      background: rgba(255, 253, 244, 0.94);
+      backdrop-filter: blur(10px);
+      border: 1.5px solid var(--borde-suave);
+      border-radius: 18px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--texto-oscuro);
+      cursor: pointer;
+      white-space: nowrap;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
+      transition: all 0.2s;
+    }
+
+    .filter-chip-bubble.active {
+      background: #fff;
+      border-color: var(--verde-selva);
+      color: var(--verde-selva);
+      box-shadow: 0 3px 10px rgba(53, 107, 62, 0.2);
+    }
+
+    .filter-chip-bubble:not(.active) {
+      opacity: 0.55;
+    }
+
+    /* ========================================================= */
+    /* PINS VECTORIALES 3D FLOTANTES (ADIÓS AL PALITO CON PUNTA) */
+    /* ========================================================= */
+    .gamified-pin-root {
+      position: relative;
+      width: 52px;
+      height: 62px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      cursor: pointer;
+    }
+
+    /* Sombra interactiva en el suelo del mapa */
+    .pin-ground-shadow {
+      position: absolute;
+      bottom: 2px;
+      width: 24px;
+      height: 8px;
+      background: rgba(26, 38, 28, 0.35);
+      border-radius: 50%;
+      animation: shadowBobAnim 3s ease-in-out infinite;
+      z-index: 1;
+    }
+
+    @keyframes shadowBobAnim {
+      0%, 100% { transform: scale(1); opacity: 0.35; }
+      50% { transform: scale(0.68); opacity: 0.18; }
+    }
+
+    /* Onda concéntrica viva anclada al suelo */
+    .pin-ground-ripple {
+      position: absolute;
+      bottom: 0px;
+      width: 26px;
+      height: 12px;
+      border: 2px solid;
+      border-radius: 50%;
+      animation: groundWaveExpand 2.4s infinite ease-out;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    @keyframes groundWaveExpand {
+      0% { transform: scale(0.4); opacity: 1; }
+      100% { transform: scale(2.5); opacity: 0; }
+    }
+
+    /* Globo / Badge 3D flotante con animación de balanceo suave */
+    .floating-eco-badge {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 2.5px solid #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      animation: badgeBobAnim 3s ease-in-out infinite;
+      transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 2;
+    }
+
+    .gamified-pin-root:hover .floating-eco-badge,
+    .gamified-pin-root:active .floating-eco-badge {
+      transform: translateY(-8px) scale(1.16) !important;
+    }
+
+    @keyframes badgeBobAnim {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-7px); }
+    }
+
+    /* Brillo de cristal glossy */
+    .badge-glossy-shine {
+      position: absolute;
+      top: 3px;
+      left: 7px;
+      right: 7px;
+      height: 14px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 100%);
+      border-radius: 12px 12px 4px 4px;
+      pointer-events: none;
+    }
+
+    /* Indicador de pulso urgente */
+    .badge-urgent-dot {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      width: 11px;
+      height: 11px;
+      background: #FFD166;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #FFD166;
+      animation: urgentBlink 1.2s infinite ease-in-out;
+    }
+
+    @keyframes urgentBlink {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.7; }
+    }
+
+    /* Animaciones individuales de iconos interiores */
+    .anim-flame {
+      animation: flameDancing 1.5s infinite ease-in-out alternate;
+      transform-origin: bottom center;
+    }
+
+    @keyframes flameDancing {
+      0% { transform: scale(0.9) rotate(-4deg); }
+      100% { transform: scale(1.1) rotate(4deg); }
+    }
+
+    .anim-sun {
+      animation: sunRotating 9s infinite linear;
+    }
+
+    @keyframes sunRotating {
+      100% { transform: rotate(360deg); }
+    }
+
+    .anim-water {
+      animation: waterUndulating 2.4s infinite ease-in-out alternate;
+    }
+
+    @keyframes waterUndulating {
+      0% { transform: translateY(1px); }
+      100% { transform: translateY(-2px); }
+    }
+
+    .anim-tree {
+      animation: treeGentleSway 3s infinite ease-in-out alternate;
+      transform-origin: bottom center;
+    }
+
+    @keyframes treeGentleSway {
+      0% { transform: rotate(-5deg); }
+      100% { transform: rotate(5deg); }
+    }
+
+    /* ETIQUETAS DE HITOS EMBLEMÁTICOS */
+    .landmark-pill-clean {
+      background: rgba(255, 253, 244, 0.94);
+      border: 1.5px solid var(--verde-selva);
+      padding: 3px 8px;
+      border-radius: 14px;
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: var(--verde-selva);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+      white-space: nowrap;
+      pointer-events: auto;
+    }
+
+    /* ========================================================= */
+    /* BOTONES INFERIORES FLOTANTES (FAB Y COMPAÑERO ANIMAL)     */
+    /* ========================================================= */
+    .fab-report-pill {
+      position: absolute;
+      bottom: 76px;
+      right: 14px;
+      z-index: 550;
+      background: linear-gradient(135deg, var(--naranja-tierra) 0%, #e0531b 100%);
+      color: #fff;
+      border: none;
+      border-radius: 26px;
+      padding: 10px 16px 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      box-shadow: 0 8px 24px rgba(217, 107, 53, 0.45);
+      cursor: pointer;
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .fab-report-pill:active {
+      transform: scale(0.93);
+    }
+
+    .companion-widget {
+      position: absolute;
+      bottom: 76px;
+      left: 14px;
+      z-index: 550;
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .companion-avatar-bubble {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--marfil);
+      border: 2.5px solid var(--dorado-pez);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      cursor: pointer;
+      pointer-events: auto;
+      animation: companionBob 3.5s ease-in-out infinite;
+      position: relative;
+    }
+
+    .companion-avatar-bubble img {
+      width: 90%;
+      height: 90%;
+      object-fit: contain;
+    }
+
+    @keyframes companionBob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+
+    .companion-speech-bubble {
+      background: rgba(255, 253, 244, 0.96);
+      backdrop-filter: blur(8px);
+      border: 1.5px solid var(--verde-selva);
+      border-radius: 14px 14px 14px 4px;
+      padding: 6px 11px;
+      max-width: 200px;
+      box-shadow: var(--sombra-flotante);
+      font-size: 0.69rem;
+      font-weight: 600;
+      color: var(--texto-oscuro);
+      line-height: 1.3;
+      pointer-events: auto;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ========================================================= */
+    /* HOJA INFERIOR (BOTTOM SHEET) CON EQUILIBRIO VISUAL         */
+    /* ========================================================= */
+    .native-bottom-sheet {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--marfil);
+      border-radius: 26px 26px 0 0;
+      border: 2px solid var(--borde-suave);
+      border-bottom: none;
+      box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.22);
+      z-index: 800;
+      transform: translateY(105%);
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      max-height: 48%; /* Mantiene 52% del mapa siempre visible */
+    }
+
+    .native-bottom-sheet.open {
+      transform: translateY(0);
+    }
+
+    .sheet-handle-bar {
+      width: 42px;
+      height: 5px;
+      background: rgba(0, 0, 0, 0.18);
+      border-radius: 3px;
+      margin: 8px auto 2px auto;
+    }
+
+    .sheet-header-mobile {
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--borde-suave);
+    }
+
+    .sheet-badge-cat {
+      font-size: 0.68rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 12px;
+      letter-spacing: 0.04em;
+    }
+
+    .sheet-badge-cat.urgente {
+      background: rgba(230, 57, 70, 0.14);
+      color: var(--rojo-fuego);
+      border: 1px solid var(--rojo-fuego);
+    }
+
+    .sheet-badge-cat.moderada {
+      background: rgba(217, 107, 53, 0.14);
+      color: var(--naranja-tierra);
+      border: 1px solid var(--naranja-tierra);
+    }
+
+    .sheet-badge-cat.impacto {
+      background: rgba(53, 107, 62, 0.14);
+      color: var(--verde-selva);
+      border: 1px solid var(--verde-selva);
+    }
+
+    .sheet-body-mobile {
+      padding: 12px 18px 16px 18px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .sheet-title-text {
+      font-size: 1.02rem;
+      font-weight: 800;
+      color: var(--texto-oscuro);
+      line-height: 1.25;
+    }
+
+    /* UBICACIÓN CON BRÚJULA DINÁMICA (SIN PALITO CON PUNTA) */
+    .sheet-location-box {
+      font-size: 0.73rem;
+      color: var(--texto-mutado);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 700;
+    }
+
+    .geo-radar-mini {
+      position: relative;
+      width: 14px;
+      height: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .geo-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--verde-selva);
+      border-radius: 50%;
+    }
+
+    .geo-pulse {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: rgba(53, 107, 62, 0.4);
+      animation: radarPulseAnim 1.8s infinite ease-out;
+    }
+
+    .sheet-card-desc {
+      font-size: 0.78rem;
+      color: var(--texto-oscuro);
+      line-height: 1.45;
+      background: var(--crema-papel);
+      padding: 9px 12px;
+      border-radius: 12px;
+      border-left: 3.5px solid var(--verde-selva);
+    }
+
+    .sheet-grid-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+
+    .grid-metric-box {
+      background: #fff;
+      border: 1px solid var(--borde-suave);
+      border-radius: 12px;
+      padding: 7px 4px;
+      text-align: center;
+    }
+
+    .grid-metric-box span {
+      display: block;
+      font-size: 0.6rem;
+      color: var(--texto-mutado);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .grid-metric-box strong {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: var(--verde-selva);
+    }
+
+    .sheet-action-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .btn-action-primary {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px;
+      border-radius: 14px;
+      background: var(--verde-selva);
+      color: #fff;
+      font-size: 0.82rem;
+      font-weight: 800;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-action-primary:active {
+      transform: scale(0.97);
+    }
+
+    .btn-action-primary.confirmed {
+      background: #2b7a38;
+      pointer-events: none;
+    }
+
+    .btn-action-emergency {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px;
+      border-radius: 14px;
+      background: #fff;
+      color: var(--rojo-fuego);
+      font-size: 0.82rem;
+      font-weight: 800;
+      border: 1.5px solid var(--rojo-fuego);
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    /* BARRA DE NAVEGACIÓN INFERIOR DE LA APP */
+    .mobile-tab-bar {
+      height: 60px;
+      background: var(--marfil);
+      border-top: 1.5px solid var(--borde-suave);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 8px 4px 8px;
+      z-index: 900;
+      box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.04);
+    }
+
+    .tab-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      background: transparent;
+      border: none;
+      color: var(--texto-mutado);
+      font-family: inherit;
+      font-size: 0.65rem;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 4px 10px;
+      border-radius: 12px;
+      transition: all 0.2s;
+    }
+
+    .tab-item i {
+      width: 20px;
+      height: 20px;
+      transition: transform 0.2s;
+    }
+
+    .tab-item.active {
+      color: var(--verde-selva);
+    }
+
+    .tab-item.active i {
+      transform: scale(1.15);
+      color: var(--verde-selva);
+    }
+
+    .tab-indicator-dot {
+      width: 4px;
+      height: 4px;
+      background: var(--verde-selva);
+      border-radius: 50%;
+      margin-top: 1px;
+    }
+
+    /* MODAL DE REPORTE MÓVIL */
+    .mobile-modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(14, 25, 17, 0.65);
+      backdrop-filter: blur(4px);
+      z-index: 1200;
+      display: flex;
+      align-items: flex-end;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .mobile-modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .mobile-modal-sheet {
+      width: 100%;
+      background: var(--marfil);
+      border-radius: 26px 26px 0 0;
+      padding: 18px 20px 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .mobile-modal-overlay.open .mobile-modal-sheet {
+      transform: translateY(0);
+    }
+
+    .form-group-label {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--texto-mutado);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .form-input-field {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--borde-suave);
+      border-radius: 12px;
+      background: #fff;
+      font-family: inherit;
+      font-size: 0.82rem;
+      outline: none;
+    }
+
+    .form-input-field:focus {
+      border-color: var(--verde-selva);
+    }
+
+    @media (max-width: 480px) {
+      body {
+        background: var(--crema-papel);
+      }
+      .view-toggle-bar {
+        display: none;
+      }
+      .phone-container {
+        width: 100vw;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
+      }
+      .mobile-status-bar {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="outer-wrapper">
+    <!-- SELECTOR DE MODO DE VISTA (ESCRITORIO) -->
+    <div class="view-toggle-bar">
+      <span>📱 Vista Simulada:</span>
+      <button class="btn-view-mode active" id="btnPhoneView" onclick="setPhoneMode(true)">
+        <i data-lucide="smartphone" style="width:13px; height:13px;"></i> Móvil
+      </button>
+      <button class="btn-view-mode" id="btnFullscreenView" onclick="setPhoneMode(false)">
+        <i data-lucide="maximize" style="width:13px; height:13px;"></i> Pantalla Completa
+      </button>
+    </div>
+
+    <!-- CONTENEDOR DEL SMARTPHONE -->
+    <div class="phone-container" id="phoneContainer">
+
+      <!-- STATUS BAR -->
+      <div class="mobile-status-bar">
+        <span>9:41</span>
+        <div class="dynamic-island">
+          <div class="dynamic-island-cam"></div>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <i data-lucide="wifi" style="width:13px; height:13px;"></i>
+          <i data-lucide="battery-charging" style="width:15px; height:15px;"></i>
+        </div>
+      </div>
+
+      <!-- CABECERA DE LA APP (SIN EMOJIS PLANOS) -->
+      <header class="app-header">
+        <div class="app-brand">
+          <div class="app-logo-box">
+            <img src="assets/img/logo_unad.png" alt="UNAD" onerror="this.src='lgo unad - olimpiadas.png'">
+          </div>
+          <div class="location-selector" onclick="centerMapOnTown()">
+            <div class="location-badge-row">
+              <div class="live-radar-beacon">
+                <span class="radar-ping"></span>
+                <span class="radar-core"></span>
+              </div>
+              <span class="town-name">La Dorada, Caldas</span>
+              <span class="live-chip-badge">EN VIVO</span>
+              <i data-lucide="chevron-down" style="width:13px; height:13px; color:var(--verde-selva);"></i>
+            </div>
+            <span class="location-subtext">Magdalena Caldense · Eje 3 El Niño</span>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <button class="btn-icon-header" title="Alertas Activas">
+            <i data-lucide="bell" style="width:16px; height:16px;"></i>
+            <div class="badge-bell"></div>
+          </button>
+        </div>
+      </header>
+
+      <!-- VIEWPORT DEL MAPA -->
+      <div class="map-viewport">
+        <div id="map"></div>
+
+        <!-- HUD FLOTANTE SUPERIOR UNIFICADO -->
+        <div class="map-floating-hud">
+          <!-- Fila 1: Buscador centrado + Botón recentrar + Botón Capas -->
+          <div class="hud-row-search">
+            <div class="search-field-wrapper">
+              <i data-lucide="search" class="search-field-icon"></i>
+              <input type="text" id="searchInput" class="search-input-clean" placeholder="Buscar vereda, río o alerta...">
+            </div>
+
+            <button class="hud-circle-btn" id="btnCenterMap" title="Recentrar en La Dorada" onclick="centerMapOnTown()">
+              <i data-lucide="crosshair" style="width:18px; height:18px;"></i>
+            </button>
+
+            <div class="basemap-dropdown-wrapper">
+              <button class="hud-circle-btn" id="btnBasemapToggle" title="Cambiar mapa base" onclick="toggleBasemapMenu()">
+                <i data-lucide="layers" style="width:18px; height:18px;"></i>
+              </button>
+              <div class="basemap-popup-menu" id="basemapMenu">
+                <button class="basemap-item-btn active" id="btnBaseTopo" onclick="switchBaseMap('topo')">
+                  <span>⛰️</span> <span>Topográfico</span>
+                </button>
+                <button class="basemap-item-btn" id="btnBaseStreet" onclick="switchBaseMap('street')">
+                  <span>🗺️</span> <span>Calles y Vías</span>
+                </button>
+                <button class="basemap-item-btn" id="btnBaseSat" onclick="switchBaseMap('satellite')">
+                  <span>🛰️</span> <span>Satélite</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fila 2: Segmented Switch (Riesgo vs Impacto) + Scroll de Chips -->
+          <div class="hud-row-controls">
+            <div class="segmented-layer-capsule">
+              <button class="seg-pill-btn active" id="tabAlertas" onclick="switchLayerMode('alertas')">
+                <span class="seg-dot red"></span> Riesgo
+              </button>
+              <button class="seg-pill-btn" id="tabImpacto" onclick="switchLayerMode('impacto')">
+                <span class="seg-dot green"></span> Impacto
+              </button>
+            </div>
+
+            <div class="chips-horizontal-scroll" id="filterChipsRow">
+              <div class="filter-chip-bubble active" data-cat="incendio" onclick="toggleFilter('incendio')">
+                <span>🔥 Incendios</span>
+              </div>
+              <div class="filter-chip-bubble active" data-cat="calor" onclick="toggleFilter('calor')">
+                <span>☀️ Calor Extremo</span>
+              </div>
+              <div class="filter-chip-bubble active" data-cat="agua" onclick="toggleFilter('agua')">
+                <span>💧 Río Magdalena</span>
+              </div>
+              <div class="filter-chip-bubble active" data-cat="siembra" onclick="toggleFilter('siembra')">
+                <span>🌱 Siembras</span>
+              </div>
+              <div class="filter-chip-bubble active" data-cat="hidratacion" onclick="toggleFilter('hidratacion')">
+                <span>🚰 Oasis Agua</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BOTÓN FLOTANTE REPORTAR (+ FAB) -->
+        <button class="fab-report-pill" id="btnOpenReport" onclick="openReportModal()">
+          <i data-lucide="plus" style="width:18px; height:18px;"></i>
+          <span>Reportar</span>
+        </button>
+
+        <!-- COMPAÑERO ANIMAL ANIMADO (FAUNA MAGDALENA) -->
+        <div class="companion-widget">
+          <div class="companion-avatar-bubble" id="companionBubble" onclick="cycleAvatarCompanion()" title="Toca para cambiar de compañero">
+            <img id="companionImg" src="assets/avatars/nutria.webp" alt="Nutria" onerror="this.src='assets/avatars/nutria.png'">
+          </div>
+          <div class="companion-speech-bubble" id="companionBubbleText" onclick="readCompanionVoice()">
+            <span id="speechText">"¡Vigilemos el Río Magdalena y las veredas hoy!"</span>
+            <i data-lucide="volume-2" style="width:14px; height:14px; color:var(--verde-selva); flex-shrink:0;"></i>
+          </div>
+        </div>
+
+        <!-- HOJA INFERIOR FLUIDA (BOTTOM SHEET) -->
+        <div class="native-bottom-sheet" id="bottomSheet">
+          <div class="sheet-handle-bar"></div>
+          <div class="sheet-header-mobile">
+            <span class="sheet-badge-cat urgente" id="sheetBadge">🔴 Alerta Crítica</span>
+            <button style="border:none; background:transparent; cursor:pointer;" onclick="closeBottomSheet()">
+              <i data-lucide="x" style="width:18px; height:18px; color:var(--texto-mutado);"></i>
+            </button>
+          </div>
+          <div class="sheet-body-mobile">
+            <h3 class="sheet-title-text" id="sheetTitle">Conflagración en Vereda Concordia</h3>
+            
+            <div class="sheet-location-box">
+              <div class="geo-radar-mini">
+                <span class="geo-pulse"></span>
+                <span class="geo-dot"></span>
+              </div>
+              <span id="sheetLocationText">Vereda Concordia · La Dorada</span>
+            </div>
+
+            <p class="sheet-card-desc" id="sheetDesc">
+              Columna de humo divisada cerca a potrero seco. Se requiere verificación inmediata para evitar propagación a viviendas.
+            </p>
+
+            <div class="sheet-grid-metrics">
+              <div class="grid-metric-box">
+                <span>Confirmaciones</span>
+                <strong id="sheetConfirms">9</strong>
+              </div>
+              <div class="grid-metric-box">
+                <span>Tiempo</span>
+                <strong id="sheetTime">Hace 14m</strong>
+              </div>
+              <div class="grid-metric-box">
+                <span>Estado</span>
+                <strong id="sheetStatus" style="color:var(--naranja-tierra);">En Validación</strong>
+              </div>
+            </div>
+
+            <div class="sheet-action-buttons">
+              <button class="btn-action-primary" id="btnConfirmCommunity" onclick="confirmAlertCommunity()">
+                <i data-lucide="check-circle" style="width:16px; height:16px;"></i>
+                <span>Lo veo también (+1 confirmación)</span>
+              </button>
+
+              <a href="tel:119" class="btn-action-emergency" id="btnCallBomberos">
+                <i data-lucide="phone-call" style="width:16px; height:16px;"></i>
+                <span>Llamar Bomberos La Dorada (119)</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODAL DE REPORTE MÓVIL -->
+        <div class="mobile-modal-overlay" id="reportModalOverlay">
+          <div class="mobile-modal-sheet">
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+              <h4 style="font-size:0.95rem; font-weight:800; color:var(--verde-selva);">📢 Reportar Alerta en La Dorada</h4>
+              <button style="border:none; background:transparent; cursor:pointer;" onclick="closeReportModal()">
+                <i data-lucide="x" style="width:18px; height:18px;"></i>
+              </button>
+            </div>
+
+            <div>
+              <label class="form-group-label">Tipo de Riesgo</label>
+              <select id="modalAlertType" class="form-input-field">
+                <option value="incendio">🔥 Incendio / Quema vegetal</option>
+                <option value="calor">☀️ Ola de Calor Extremo</option>
+                <option value="agua">💧 Bajante del Río / Falta de agua</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="form-group-label">Ubicación / Sector</label>
+              <input type="text" id="modalAlertPlace" class="form-input-field" placeholder="Ej: Vereda Concordia, Malecón Bucamba, Las Ferias">
+            </div>
+
+            <div>
+              <label class="form-group-label">Descripción</label>
+              <textarea id="modalAlertDesc" class="form-input-field" rows="2" placeholder="¿Qué observas en el territorio?"></textarea>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:6px;">
+              <button class="btn-action-primary" style="background:#e4e0d4; color:#333; flex:1;" onclick="closeReportModal()">Cancelar</button>
+              <button class="btn-action-primary" style="flex:2; background:var(--naranja-tierra);" onclick="submitReportMobile()">Publicar Alerta</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- BARRA DE NAVEGACIÓN INFERIOR DE LA APP -->
+      <nav class="mobile-tab-bar">
+        <button class="tab-item" onclick="handleNavClick('inicio')">
+          <i data-lucide="home"></i>
+          <span>Inicio</span>
+        </button>
+        <button class="tab-item" onclick="handleNavClick('reels')">
+          <i data-lucide="film"></i>
+          <span>Reels</span>
+        </button>
+        <button class="tab-item active" onclick="handleNavClick('mapa')">
+          <i data-lucide="map"></i>
+          <span>Mapa</span>
+          <div class="tab-indicator-dot"></div>
+        </button>
+        <button class="tab-item" onclick="handleNavClick('retos')">
+          <i data-lucide="award"></i>
+          <span>Retos</span>
+        </button>
+        <button class="tab-item" onclick="handleNavClick('perfil')">
+          <i data-lucide="user"></i>
+          <span>Perfil</span>
+        </button>
+      </nav>
+
+    </div>
+  </div>
+
+  <!-- LEAFLET JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <script>
+    // -----------------------------------------------------------------
+    // 1. INICIALIZACIÓN DE LA VISTA Y DIMENSIONES
+    // -----------------------------------------------------------------
+    function setPhoneMode(isPhone) {
+      const container = document.getElementById('phoneContainer');
+      const btnPhone = document.getElementById('btnPhoneView');
+      const btnFull = document.getElementById('btnFullscreenView');
+
+      if (isPhone) {
+        container.classList.remove('fullscreen-mode');
+        btnPhone.classList.add('active');
+        btnFull.classList.remove('active');
+      } else {
+        container.classList.add('fullscreen-mode');
+        btnFull.classList.add('active');
+        btnPhone.classList.remove('active');
+      }
+      setTimeout(() => { map.invalidateSize(); }, 360);
+    }
+
+    // -----------------------------------------------------------------
+    // 2. CONFIGURACIÓN DEL MAPA LEAFLET EN LA DORADA (CALDAS)
+    // -----------------------------------------------------------------
+    const boundsLaDorada = [
+      [5.405, -74.715],
+      [5.505, -74.625]
+    ];
+    const centerLaDorada = [5.4542, -74.6648];
+
+    const map = L.map('map', {
+      center: centerLaDorada,
+      zoom: 14,
+      minZoom: 13,
+      maxZoom: 18,
+      maxBounds: boundsLaDorada,
+      maxBoundsViscosity: 1.0,
+      zoomControl: false,
+      attributionControl: false
+    });
+
+    // -----------------------------------------------------------------
+    // 3. CAPAS BASE OFICIALES (100% LIBRES, SIN BLOQUEOS FILE://)
+    // -----------------------------------------------------------------
+    const baseLayers = {
+      topo: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18 }),
+      street: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 }),
+      satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18 })
+    };
+
+    let activeBaseLayer = baseLayers.topo;
+    activeBaseLayer.addTo(map);
+
+    function toggleBasemapMenu() {
+      const menu = document.getElementById('basemapMenu');
+      menu.classList.toggle('open');
+    }
+
+    function switchBaseMap(type) {
+      document.querySelectorAll('.basemap-item-btn').forEach(b => b.classList.remove('active'));
+      if (type === 'topo') document.getElementById('btnBaseTopo').classList.add('active');
+      if (type === 'street') document.getElementById('btnBaseStreet').classList.add('active');
+      if (type === 'satellite') document.getElementById('btnBaseSat').classList.add('active');
+
+      map.removeLayer(activeBaseLayer);
+      activeBaseLayer = baseLayers[type];
+      activeBaseLayer.addTo(map);
+      document.getElementById('basemapMenu').classList.remove('open');
+    }
+
+    // Cerrar menú de mapa base al hacer clic en el mapa
+    map.on('click', () => {
+      document.getElementById('basemapMenu').classList.remove('open');
+    });
+
+    // -----------------------------------------------------------------
+    // 4. HITOS EMBLEMÁTICOS DE LA DORADA (Puntos de referencia sutiles)
+    // -----------------------------------------------------------------
+    const hitos = [
+      { name: "Puente Navarro (1904)", lat: 5.4514, lon: -74.6565, icon: "🌉" },
+      { name: "Río Magdalena (Bucamba)", lat: 5.4580, lon: -74.6608, icon: "🌊" },
+      { name: "Parque Santander (Centro)", lat: 5.4542, lon: -74.6648, icon: "🏛️" },
+      { name: "Barrio Las Ferias", lat: 5.4435, lon: -74.6710, icon: "🏘️" },
+      { name: "Charca de Guarinocito", lat: 5.4850, lon: -74.6780, icon: "🌿" }
+    ];
+
+    hitos.forEach(h => {
+      const hitoIcon = L.divIcon({
+        className: 'landmark-icon-wrap',
+        html: `<div class="landmark-pill-clean">
+                 <span>${h.icon}</span> <span>${h.name}</span>
+               </div>`,
+        iconAnchor: [50, 14]
+      });
+      L.marker([h.lat, h.lon], { icon: hitoIcon }).addTo(map);
+    });
+
+    // -----------------------------------------------------------------
+    // 5. DATOS DE ALERTAS (EJE 3 EL NIÑO) E IMPACTO COMUNITARIO
+    // -----------------------------------------------------------------
+    const dataset = [
+      {
+        id: "alert-1",
+        layer: "alertas",
+        category: "incendio",
+        title: "Conflagración de pastizal activo",
+        location: "Vereda Concordia (Sector Norte)",
+        lat: 5.4740,
+        lon: -74.6720,
+        desc: "Foco de quema de rastrojo detectado por vecinos. Temperatura 39°C y ráfagas de viento amenazan pastizales ganaderos.",
+        severity: "urgente",
+        severityLabel: "🔴 Alerta Crítica",
+        confirmations: 9,
+        timeAgo: "Hace 14m",
+        status: "Bomberos en Camino",
+        color: "#E63946",
+        haloColor: "rgba(230, 57, 70, 0.45)",
+        iconType: "flame"
+      },
+      {
+        id: "alert-2",
+        layer: "alertas",
+        category: "calor",
+        title: "Punto de Estrés Térmico: Adultos Mayores",
+        location: "Barrio Alfonso López / Calle 10",
+        lat: 5.4490,
+        lon: -74.6620,
+        desc: "Sensación térmica extrema de 41°C. Brigada comunitaria activó plan de hidratación y acompañamiento a 14 adultos mayores.",
+        severity: "moderada",
+        severityLabel: "🟠 Calor Extremo",
+        confirmations: 6,
+        timeAgo: "Hace 32m",
+        status: "Red Comunitaria",
+        color: "#D96B35",
+        haloColor: "rgba(217, 107, 53, 0.45)",
+        iconType: "sun"
+      },
+      {
+        id: "alert-3",
+        layer: "alertas",
+        category: "agua",
+        title: "Bajante crítica del Río Magdalena",
+        location: "Desembocadura Río Guarinó",
+        lat: 5.4260,
+        lon: -74.6740,
+        desc: "Nivel hídrico 40% por debajo de la media estacional. Pescadores reportan bancos de arena y necesidad de monitoreo constante.",
+        severity: "moderada",
+        severityLabel: "🔵 Escasez Hídrica",
+        confirmations: 15,
+        timeAgo: "Hace 1h",
+        status: "En Inspección",
+        color: "#477FA8",
+        haloColor: "rgba(71, 127, 168, 0.45)",
+        iconType: "water"
+      },
+      {
+        id: "alert-4",
+        layer: "alertas",
+        category: "incendio",
+        title: "Quema de cobertura vegetal sin control",
+        location: "Vereda Japón / Vía Norcasia",
+        lat: 5.4620,
+        lon: -74.6980,
+        desc: "Humo denso dificulta visibilidad sobre la vía. Familias rurales solicitan apoyo urgente de bomberos voluntarios.",
+        severity: "urgente",
+        severityLabel: "🔴 Alerta Crítica",
+        confirmations: 5,
+        timeAgo: "Hace 20m",
+        status: "Validación Activa",
+        color: "#E63946",
+        haloColor: "rgba(230, 57, 70, 0.45)",
+        iconType: "flame"
+      },
+
+      // Capa de Impacto Comunitario
+      {
+        id: "impact-1",
+        layer: "impacto",
+        category: "siembra",
+        title: "Bosque Comunitario #4: 100 Árboles",
+        location: "Riberas de Bucamba / Malecón",
+        lat: 5.4595,
+        lon: -74.6580,
+        desc: "¡Meta cumplida! Con 10.000 semillas digitales acumuladas por jóvenes de colegios se plantaron especies nativas: Guayacán y Ceiba.",
+        severity: "impacto",
+        severityLabel: "🌱 Retorno al Territorio",
+        confirmations: 38,
+        timeAgo: "Ayer",
+        status: "Siembra Exitosa",
+        color: "#356B3E",
+        haloColor: "rgba(53, 107, 62, 0.4)",
+        iconType: "tree"
+      },
+      {
+        id: "impact-2",
+        layer: "impacto",
+        category: "hidratacion",
+        title: "Oasis Comunitario e Hidratación Animal",
+        location: "Plaza de Mercado Central",
+        lat: 5.4520,
+        lon: -74.6670,
+        desc: "Instalado por comerciantes para mitigar el golpe de calor en aves, animales comunitarios y adultos mayores de la plaza.",
+        severity: "impacto",
+        severityLabel: "🚰 Oasis de Agua",
+        confirmations: 21,
+        timeAgo: "Hace 4h",
+        status: "Activo",
+        color: "#8DC8C5",
+        haloColor: "rgba(141, 200, 197, 0.45)",
+        iconType: "droplet"
+      }
+    ];
+
+    let currentLayerMode = "alertas";
+    let activeCategoryFilters = {
+      incendio: true,
+      calor: true,
+      agua: true,
+      siembra: true,
+      hidratacion: true
+    };
+
+    let mapMarkerList = [];
+    let currentSelectedPin = null;
+
+    // -----------------------------------------------------------------
+    // 6. NUEVOS PINS 3D FLOTANTES (GAMIFICADOS, SIN PALITO CON PUNTA)
+    // -----------------------------------------------------------------
+    function buildAnimatedPin(item) {
+      let innerSvg = '';
+      if (item.iconType === 'flame') {
+        innerSvg = `
+          <svg class="anim-flame" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2C9.5 7 5 9.5 5 15C5 18.87 8.13 22 12 22C15.87 22 19 18.87 19 15C19 11 15.5 8 13.5 5.5C13 4.5 12.5 3 12 2Z" fill="#FFF"/>
+            <path d="M12 9C10.5 12 8 13.5 8 16.5C8 18.71 9.79 20.5 12 20.5C14.21 20.5 16 18.71 16 16.5C16 14 14.5 12.5 13 11C12.5 10.3 12.2 9.5 12 9Z" fill="#FFD166"/>
+          </svg>`;
+      } else if (item.iconType === 'sun') {
+        innerSvg = `
+          <svg class="anim-sun" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="5.5" fill="#FFF"/>
+            <path d="M12 1V4M12 20V23M4.22 4.22L6.34 6.34M17.66 17.66L19.78 19.78M1 12H4M20 12H23M4.22 19.78L6.34 17.66M17.66 6.34L19.78 4.22" stroke="#FFF" stroke-width="2.6" stroke-linecap="round"/>
+          </svg>`;
+      } else if (item.iconType === 'water') {
+        innerSvg = `
+          <svg class="anim-water" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2.69L6.5 10.2C4.33 13.18 4.78 17.29 7.55 19.76C10.15 22.08 13.85 22.08 16.45 19.76C19.22 17.29 19.67 13.18 17.5 10.2L12 2.69Z" fill="#FFF"/>
+            <path d="M7 15C7.5 14 9.5 14 10.5 15C11.5 16 13.5 16 14.5 15C15.5 14 16.5 14.5 17 15" stroke="#477FA8" stroke-width="2" stroke-linecap="round"/>
+          </svg>`;
+      } else if (item.iconType === 'tree') {
+        innerSvg = `
+          <svg class="anim-tree" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M12 22V14" stroke="#DDA15E" stroke-width="3" stroke-linecap="round"/>
+            <path d="M12 3C8 3 5 6.5 5 10C5 12.8 7 14.5 9 15C8.5 16 11 16 12 16C13 16 15.5 16 15 15C17 14.5 19 12.8 19 10C19 6.5 16 3 12 3Z" fill="#FFF"/>
+            <circle cx="12" cy="9" r="3" fill="#A8C96F"/>
+          </svg>`;
+      } else {
+        innerSvg = `
+          <svg class="anim-water" width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2.69L6.5 10.2C4.33 13.18 4.78 17.29 7.55 19.76C10.15 22.08 13.85 22.08 16.45 19.76C19.22 17.29 19.67 13.18 17.5 10.2L12 2.69Z" fill="#FFF"/>
+          </svg>`;
+      }
+
+      const isCritical = (item.severity === "urgente");
+
+      const html = `
+        <div class="gamified-pin-root">
+          <div class="pin-ground-shadow"></div>
+          <div class="pin-ground-ripple" style="border-color:${item.color};"></div>
+          <div class="floating-eco-badge" style="background:${item.color}; box-shadow: 0 8px 22px ${item.haloColor}, 0 2px 6px rgba(0,0,0,0.25);">
+            <div class="badge-glossy-shine"></div>
+            ${innerSvg}
+            ${isCritical ? '<div class="badge-urgent-dot"></div>' : ''}
+          </div>
+        </div>
+      `;
+
+      const divIcon = L.divIcon({
+        className: 'custom-pin-root-wrap',
+        html: html,
+        iconSize: [52, 62],
+        iconAnchor: [26, 56]
+      });
+
+      const marker = L.marker([item.lat, item.lon], { icon: divIcon });
+
+      marker.on('click', () => {
+        openBottomSheetMobile(item);
+      });
+
+      return { item, marker };
+    }
+
+    function renderPinsOnMap() {
+      mapMarkerList.forEach(m => map.removeLayer(m.marker));
+      mapMarkerList = [];
+
+      dataset.forEach(item => {
+        const matchesLayer = (item.layer === currentLayerMode);
+        const matchesFilter = activeCategoryFilters[item.category];
+
+        if (matchesLayer && matchesFilter) {
+          const pinObj = buildAnimatedPin(item);
+          pinObj.marker.addTo(map);
+          mapMarkerList.push(pinObj);
+        }
+      });
+    }
+
+    // -----------------------------------------------------------------
+    // 7. INTERACCIÓN DE CAPAS Y FILTROS
+    // -----------------------------------------------------------------
+    function switchLayerMode(mode) {
+      currentLayerMode = mode;
+      document.getElementById('tabAlertas').classList.toggle('active', mode === 'alertas');
+      document.getElementById('tabImpacto').classList.toggle('active', mode === 'impacto');
+      renderPinsOnMap();
+      closeBottomSheet();
+
+      if (mode === 'alertas') {
+        updateCompanion("Mostrando alertas de riesgo en La Dorada. Recuerda validar con 'Lo veo también'.");
+      } else {
+        updateCompanion("¡Visualizando el impacto! 100 semillas acumuladas equivalen a un árbol sembrado.");
+      }
+    }
+
+    function toggleFilter(category) {
+      activeCategoryFilters[category] = !activeCategoryFilters[category];
+      const chipEl = document.querySelector(`.filter-chip-bubble[data-cat="${category}"]`);
+      if (chipEl) {
+        chipEl.classList.toggle('active', activeCategoryFilters[category]);
+      }
+      renderPinsOnMap();
+    }
+
+    // -----------------------------------------------------------------
+    // 8. HOJA INFERIOR FLUIDA (BOTTOM SHEET CON DESPLAZAMIENTO EQUILIBRADO)
+    // -----------------------------------------------------------------
+    function openBottomSheetMobile(item) {
+      currentSelectedPin = item;
+      const sheet = document.getElementById('bottomSheet');
+      const badge = document.getElementById('sheetBadge');
+
+      badge.className = `sheet-badge-cat ${item.severity}`;
+      badge.innerText = item.severityLabel;
+
+      document.getElementById('sheetTitle').innerText = item.title;
+      document.getElementById('sheetLocationText').innerText = item.location;
+      document.getElementById('sheetDesc').innerText = item.desc;
+      document.getElementById('sheetConfirms').innerText = item.confirmations;
+      document.getElementById('sheetTime').innerText = item.timeAgo;
+      document.getElementById('sheetStatus').innerText = item.status;
+
+      const confirmBtn = document.getElementById('btnConfirmCommunity');
+      confirmBtn.className = 'btn-action-primary';
+      confirmBtn.innerHTML = `<i data-lucide="check-circle" style="width:16px; height:16px;"></i><span>Lo veo también (+1 confirmación)</span>`;
+
+      // Centrado con offset vertical para que el pin quede en la mitad superior libre
+      const offsetLat = 0.0075;
+      map.flyTo([item.lat + offsetLat, item.lon], 15, { duration: 0.75 });
+
+      sheet.classList.add('open');
+      lucide.createIcons();
+    }
+
+    function closeBottomSheet() {
+      document.getElementById('bottomSheet').classList.remove('open');
+      currentSelectedPin = null;
+    }
+
+    function confirmAlertCommunity() {
+      if (!currentSelectedPin) return;
+      currentSelectedPin.confirmations += 1;
+      document.getElementById('sheetConfirms').innerText = currentSelectedPin.confirmations;
+
+      const confirmBtn = document.getElementById('btnConfirmCommunity');
+      confirmBtn.classList.add('confirmed');
+      confirmBtn.innerHTML = `<i data-lucide="check" style="width:16px; height:16px;"></i><span>¡Validado por ti y la comunidad!</span>`;
+
+      updateCompanion(`¡Gran acción! Tu validación sube esta alerta a prioridad alta para los bomberos.`);
+      lucide.createIcons();
+    }
+
+    // -----------------------------------------------------------------
+    // 9. ASISTENTE ANIMAL Y SÍNTESIS DE VOZ
+    // -----------------------------------------------------------------
+    const animalAvatars = [
+      { name: "Ima", role: "La Madre Tierra (Nutria)", img: "assets/avatars/nutria.webp", fallback: "assets/avatars/nutria.png", msg: "¡Hola! Soy Ima, represento a La Madre Tierra. Cuidemos el agua del Río Magdalena frente a El Niño." },
+      { name: "Ta", role: "El Sol (Pez Dorado)", img: "assets/avatars/pez.webp", fallback: "assets/avatars/pez.png", msg: "¡Soy Ta, la energía del Sol y el agua! Cada gota cuenta en La Dorada frente a la sequía." },
+      { name: "Chikchi", role: "El Viento (Loro)", img: "assets/avatars/loro.webp", fallback: "assets/avatars/loro.png", msg: "¡Soy Chikchi, el mensajero del Viento! Cuidado con las quemas, el viento propaga el fuego rápido." }
+    ];
+    let companionIndex = 0;
+
+    function cycleAvatarCompanion() {
+      companionIndex = (companionIndex + 1) % animalAvatars.length;
+      const av = animalAvatars[companionIndex];
+      const img = document.getElementById('companionImg');
+      img.src = av.img;
+      img.onerror = () => { img.src = av.fallback; };
+      updateCompanion(av.msg);
+    }
+
+    function updateCompanion(text) {
+      document.getElementById('speechText').innerText = `"${text}"`;
+    }
+
+    function readCompanionVoice() {
+      const text = document.getElementById('speechText').innerText;
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'es-CO';
+        utter.rate = 1.05;
+        window.speechSynthesis.speak(utter);
+      }
+    }
+
+    function centerMapOnTown() {
+      map.flyTo(centerLaDorada, 14, { duration: 0.85 });
+      updateCompanion("Mapa recentrado en el corazón de La Dorada, Caldas.");
+    }
+
+    // -----------------------------------------------------------------
+    // 10. MODAL DE REPORTE MÓVIL
+    // -----------------------------------------------------------------
+    function openReportModal() {
+      document.getElementById('reportModalOverlay').classList.add('open');
+      lucide.createIcons();
+    }
+
+    function closeReportModal() {
+      document.getElementById('reportModalOverlay').classList.remove('open');
+    }
+
+    function submitReportMobile() {
+      const type = document.getElementById('modalAlertType').value;
+      const place = document.getElementById('modalAlertPlace').value || "Sector Urbano La Dorada";
+      const desc = document.getElementById('modalAlertDesc').value || "Reporte ciudadano verificado en el territorio.";
+
+      const offsetLat = (Math.random() - 0.5) * 0.018;
+      const offsetLon = (Math.random() - 0.5) * 0.018;
+
+      const newPin = {
+        id: "alert-" + Date.now(),
+        layer: "alertas",
+        category: type,
+        title: document.getElementById('modalAlertType').selectedOptions[0].text,
+        location: place,
+        lat: centerLaDorada[0] + offsetLat,
+        lon: centerLaDorada[1] + offsetLon,
+        desc: desc,
+        severity: type === 'incendio' ? 'urgente' : 'moderada',
+        severityLabel: type === 'incendio' ? '🔴 Alerta Urgente' : '⚠️ Alerta en Validación',
+        confirmations: 1,
+        timeAgo: "Hace 1m",
+        status: "Recién Reportada",
+        color: type === 'incendio' ? '#E63946' : (type === 'calor' ? '#D96B35' : '#477FA8'),
+        haloColor: type === 'incendio' ? 'rgba(230, 57, 70, 0.45)' : 'rgba(217, 107, 53, 0.45)',
+        iconType: type === 'incendio' ? 'flame' : (type === 'calor' ? 'sun' : 'water')
+      };
+
+      dataset.unshift(newPin);
+      closeReportModal();
+
+      if (currentLayerMode !== 'alertas') {
+        switchLayerMode('alertas');
+      } else {
+        renderPinsOnMap();
+      }
+
+      openBottomSheetMobile(newPin);
+      updateCompanion("¡Tu reporte ha sido georreferenciado en La Dorada! Gracias por proteger el territorio.");
+    }
+
+    // Buscador por texto
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      if (!q) return;
+
+      const match = dataset.find(d => 
+        d.title.toLowerCase().includes(q) || 
+        d.location.toLowerCase().includes(q) ||
+        d.desc.toLowerCase().includes(q)
+      );
+
+      if (match) {
+        if (match.layer !== currentLayerMode) {
+          switchLayerMode(match.layer);
+        }
+        openBottomSheetMobile(match);
+      }
+    });
+
+    // Navegación en el Tab Bar
+    function handleNavClick(tabName) {
+      document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+
+      if (tabName !== 'mapa') {
+        updateCompanion(`Navegando al módulo de ${tabName.toUpperCase()}...`);
+      }
+    }
+
+    // Inicialización
+    window.addEventListener('DOMContentLoaded', () => {
+      renderPinsOnMap();
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
